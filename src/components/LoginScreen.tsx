@@ -4,7 +4,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface Props {
-  onLogin: (email: string, name: string) => void;
+  onLogin: (email: string, name: string, role: string) => void;
 }
 
 export default function LoginScreen({ onLogin }: Props) {
@@ -33,7 +33,7 @@ export default function LoginScreen({ onLogin }: Props) {
       if (response.ok) {
         const user = await response.json();
         toast.success(`Welcome, ${user.name}!`);
-        onLogin(user.email, user.name);
+        onLogin(user.email, user.name, user.role || 'user');
       } else {
         toast.error('Failed to login');
       }

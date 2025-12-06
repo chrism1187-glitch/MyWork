@@ -35,7 +35,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export default function JobCalendar({ currentUserEmail, currentUserName, onLogout }: { currentUserEmail?: string; currentUserName?: string; onLogout?: () => void }) {
+export default function JobCalendar({ currentUserEmail, currentUserName, currentUserRole, onLogout }: { currentUserEmail?: string; currentUserName?: string; currentUserRole?: string; onLogout?: () => void }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -44,6 +44,8 @@ export default function JobCalendar({ currentUserEmail, currentUserName, onLogou
   
   // Use provided email or fallback to demo email
   const userEmail = currentUserEmail || 'john@example.com';
+  const userRole = currentUserRole || 'user';
+  const isAdmin = userRole === 'admin';
 
   useEffect(() => {
     fetchJobs();
@@ -56,7 +58,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, onLogou
       if (response.ok) {
         const data = await response.json();
         // Ensure all jobs have required fields
-        const normalizedJobs = data.map((job: any) => ({
+        let normalizedJobs = data.map((job: any) => ({
           id: job.id,
           title: job.title || 'Untitled Job',
           description: job.description || '',
@@ -69,6 +71,12 @@ export default function JobCalendar({ currentUserEmail, currentUserName, onLogou
           photos: Array.isArray(job.photos) ? job.photos : [],
           serviceAlerts: Array.isArray(job.serviceAlerts) ? job.serviceAlerts : [],
         }));
+        
+        // If not admin, filter to only show jobs assigned to this user
+        if (!isAdmin) {
+          normalizedJobs = normalizedJobs.filter((job: Job) => job.assignedTo?.email === userEmail);
+        }
+        
         setJobs(normalizedJobs);
       }
     } catch (error) {
@@ -163,14 +171,16 @@ export default function JobCalendar({ currentUserEmail, currentUserName, onLogou
             <h1 className="text-3xl font-bold">Job Manager Pro</h1>
             {currentUserName && <p className="text-sm text-slate-300 mt-1">Logged in as {currentUserName}</p>}
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 transition rounded font-semibold"
-            >
-              <Plus size={20} />
-              New Job
-            </button>
+          <div className="flex gap-3">
+            {isAdmin && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 transition rounded font-semibold"
+              >
+                <Plus size={20} />
+                New Job
+              </button>
+            )}
             {onLogout && (
               <button
                 onClick={onLogout}
@@ -254,13 +264,15 @@ export default function JobCalendar({ currentUserEmail, currentUserName, onLogou
             )}
           </div>
 
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="w-full mt-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 flex items-center justify-center gap-2 font-semibold transition"
-          >
-            <Plus size={18} />
-            New Job
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="w-full mt-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 flex items-center justify-center gap-2 font-semibold transition"
+            >
+              <Plus size={18} />
+              New Job
+            </button>
+          )}
         </div>
       </div>
 
@@ -269,6 +281,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, onLogou
         <JobDetailModal
           job={selectedJob}
           currentUserEmail={userEmail}
+          currentUserRole={userRole}
           onClose={() => setSelectedJob(null)}
           onJobUpdated={() => {
             setSelectedJob(null);

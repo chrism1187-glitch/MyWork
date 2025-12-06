@@ -23,9 +23,10 @@ interface Props {
   onClose: () => void;
   onJobUpdated: () => void;
   currentUserEmail: string;
+  currentUserRole?: string;
 }
 
-export default function JobDetailModal({ job, onClose, onJobUpdated, currentUserEmail }: Props) {
+export default function JobDetailModal({ job, onClose, onJobUpdated, currentUserEmail, currentUserRole }: Props) {
   const [status, setStatus] = useState(job.status);
   const [duration, setDuration] = useState(job.duration);
   const [title, setTitle] = useState(job.title);
@@ -36,6 +37,9 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
   const [photos, setPhotos] = useState(job.photos || []);
   const [alerts, setAlerts] = useState(job.serviceAlerts || []);
   const [loadingNotes, setLoadingNotes] = useState(false);
+  
+  const userRole = currentUserRole || 'user';
+  const isAdmin = userRole === 'admin';
 
   useEffect(() => {
     fetchNotes();
@@ -260,7 +264,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
             <h2 className="text-3xl font-bold">{title}</h2>
           )}
           <div className="flex gap-2">
-            {isEditing && (
+            {isAdmin && isEditing && (
               <>
                 <button 
                   onClick={handleSaveEdit} 
@@ -280,7 +284,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                 </button>
               </>
             )}
-            {!isEditing && (
+            {isAdmin && !isEditing && (
               <button 
                 onClick={() => setIsEditing(true)} 
                 className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded transition font-bold text-sm"
@@ -295,7 +299,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
         </div>
 
         <div className="p-8 space-y-8 max-h-96 overflow-y-auto">
-          {isEditing && (
+          {isAdmin && isEditing && (
             <div className="bg-emerald-50 p-4 rounded-lg border-2 border-emerald-200">
               <p className="text-xs font-bold text-emerald-600 uppercase mb-3">Description</p>
               <textarea
@@ -442,12 +446,14 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
             </div>
           )}
 
-          <button
-            onClick={handleDeleteJob}
-            className="w-full py-4 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition text-lg"
-          >
-            Delete Job
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleDeleteJob}
+              className="w-full py-4 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition text-lg"
+            >
+              Delete Job
+            </button>
+          )}
         </div>
       </div>
     </div>
