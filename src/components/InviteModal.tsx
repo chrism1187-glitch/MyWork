@@ -17,6 +17,7 @@ interface Invite {
   status: string;
   createdAt: string;
   expiresAt: string;
+  acceptedAt?: string | null;
 }
 
 export default function InviteModal({ isOpen, onClose, currentUserEmail }: Props) {
