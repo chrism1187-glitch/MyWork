@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// User model for authentication
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String?
+  name      String
+  role      String     @default("user") // "admin" or "user"
+  phone     String?
+  company   String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  assignedJobs Job[] @relation("assignedTo")
+  createdJobs  Job[] @relation("createdBy")
+  notes        Note[]
+  photos       Photo[]
+}
+
+// Job model - represents a job assignment
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("pending") // pending, in-progress, completed, cancelled
+  
+  // Dates
+  scheduledDate DateTime
+  startDate     DateTime?
+  endDate       DateTime?
+  duration      Int      @default(1) // days
+  
+  // Assignments
+  assignedToId  String
+  assignedTo    User    @relation("assignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)
+  createdById   String
+  createdBy     User    @relation("createdBy", fields: [createdById], references: [id], onDelete: Cascade)
+  
+  // Job details
+  lineItems     LineItem[]
+  notes         Note[]
+  photos        Photo[]
+  serviceAlerts ServiceAlert[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Line items for each job (what the job entails)
+model LineItem {
+  id       String  @id @default(cuid())
+  jobId    String
+  job      Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  title    String
+  description String?
+  quantity Int     @default(1)
+  rate     Float   @default(0)
+  total    Float   @default(0)
+  status   String  @default("pending") // pending, completed
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Notes/supervisor comments
+model Note {
+  id     String @id @default(cuid())
+  jobId  String
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  content String
+  isPrivate Boolean @default(false) // private supervisor notes
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Photos attached to jobs
+model Photo {
+  id     String @id @default(cuid())
+  jobId  String
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  url    String // file path or S3 URL
+  caption String?
+  timestamp DateTime @default(now())
+  
+  createdAt DateTime @default(now())
+}
+
+// Service alerts - urgent notifications to supervisors
+model ServiceAlert {
+  id     String @id @default(cuid())
+  jobId  String
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  title  String
+  description String?
+  severity String @default("normal") // normal, urgent, critical
+  status String @default("open") // open, acknowledged, resolved
+  
+  sentAt DateTime @default(now())
+  acknowledgedAt DateTime?
+}
