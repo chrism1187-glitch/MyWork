@@ -5,26 +5,33 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('USER_API_REQUEST: Received request');
     const body = await req.json();
     const { email, name, createIfNotExists } = body;
+
+    console.log('USER_API_REQUEST: Body parsed', { email, name, createIfNotExists });
 
     if (!email || !name) {
       return NextResponse.json({ error: 'Email and name required' }, { status: 400 });
     }
 
     // Try to find existing user
+    console.log('USER_API_REQUEST: Attempting to find user with email:', email);
     let user = await prisma.user.findUnique({
       where: { email },
     });
+    console.log('USER_API_REQUEST: User lookup result:', user ? 'found' : 'not found');
 
     // Create if doesn't exist and createIfNotExists flag is true
     if (!user && createIfNotExists) {
+      console.log('USER_API_REQUEST: Creating new user');
       user = await prisma.user.create({
         data: {
           email,
           name,
         },
       });
+      console.log('USER_API_REQUEST: User created:', user?.id);
     }
 
     if (!user) {
@@ -33,8 +40,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error('Error with user:', error);
+    console.error('USER_API_ERROR:', error);
     const errorMsg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: 'Failed to process user', details: errorMsg }, { status: 500 });
+    const errorStack = error instanceof Error ? error.stack : '';
+    return NextResponse.json({ 
+      error: 'Failed to process user', 
+      details: errorMsg,
+      stack: errorStack,
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
