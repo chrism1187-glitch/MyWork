@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
+console.log('USER_API: Module loading - DATABASE_URL present:', !!process.env.DATABASE_URL);
 const prisma = new PrismaClient();
+console.log('USER_API: Prisma client initialized');
 
 export async function POST(req: NextRequest) {
   try {
