@@ -14,9 +14,3 @@ export default function AcceptInvitePage() {
     </Suspense>
   );
 }
-
-        </div>
-      </div>
-    </div>
-  );
-}
