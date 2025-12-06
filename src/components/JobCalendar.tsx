@@ -292,8 +292,8 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
 
       {showCreateModal && (
         <CreateJobModal
-          assignedToEmail={DEMO_ASSIGNEE_EMAIL}
-          createdByEmail={DEMO_CREATOR_EMAIL}
+          assignedToEmail={userEmail}
+          createdByEmail={userEmail}
           onClose={() => setShowCreateModal(false)}
           onJobCreated={() => {
             setShowCreateModal(false);
