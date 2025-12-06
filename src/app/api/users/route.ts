@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(user);
   } catch (error) {
     console.error('Error with user:', error);
-    return NextResponse.json({ error: 'Failed to process user' }, { status: 500 });
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to process user', details: errorMsg }, { status: 500 });
   }
 }
