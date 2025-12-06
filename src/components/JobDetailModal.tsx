@@ -151,6 +151,15 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
 
   const handleDurationChange = async (newDuration: number) => {
     if (newDuration < 1) return;
+    if (!isAdmin) {
+      toast.error('Only admins can change job duration');
+      return;
+    }
+    
+    const oldDuration = duration;
+    const change = newDuration - oldDuration;
+    const changeText = change > 0 ? `+${change} day${Math.abs(change) > 1 ? 's' : ''}` : `${change} day${Math.abs(change) > 1 ? 's' : ''}`;
+    
     try {
       const response = await fetch(`/api/jobs/${job.id}`, {
         method: 'PUT',
@@ -159,7 +168,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
       });
       if (response.ok) {
         setDuration(newDuration);
-        toast.success('Duration updated');
+        toast.success(`Duration updated: ${changeText} (${oldDuration} → ${newDuration} days)`);
       }
     } catch (error) {
       toast.error('Failed to update duration');
@@ -342,39 +351,35 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase mb-3">Duration (days)</p>
               <div className="flex gap-3 items-center">
-                <button 
-                  onClick={() => handleDurationChange(duration - 1)} 
-                  className="px-4 py-3 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition text-lg"
-                >
-                  −
-                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={() => handleDurationChange(duration - 1)} 
+                    className="px-4 py-2 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-2xl"
+                  >
+                    −
+                  </button>
+                )}
                 <span className="text-3xl font-bold text-slate-900 flex-1 text-center">{duration}</span>
-                <button 
-                  onClick={() => handleDurationChange(duration + 1)} 
-                  className="px-4 py-3 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition text-lg"
-                >
-                  +
-                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={() => handleDurationChange(duration + 1)} 
+                    className="px-4 py-2 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-2xl"
+                  >
+                    +
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="border-t-2 border-slate-200 pt-6">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Line Items ({job.lineItems.length})</h3>
-            <div className="space-y-3">
-              {job.lineItems.map((item) => (
-                <div key={item.id} className="p-4 bg-emerald-50 border-2 border-emerald-200 rounded-lg">
-                  <p className="font-bold text-slate-900">{item.title}</p>
-                  <p className="text-sm text-slate-600">{item.description}</p>
-                  <div className="flex justify-between mt-2 text-base font-semibold text-slate-900">
-                    <span>Qty: {item.quantity}</span>
-                    <span>Rate: ${item.rate}</span>
-                    <span className="text-emerald-700">Total: ${item.total}</span>
-                  </div>
-                </div>
-              ))}
+          {job.description && (
+            <div className="border-t-2 border-slate-200 pt-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Job Description</h3>
+              <div className="p-4 bg-slate-50 border-2 border-slate-200 rounded-lg">
+                <p className="text-slate-700 whitespace-pre-wrap">{job.description}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="border-t-2 border-slate-200 pt-6">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Notes ({notes.length})</h3>
