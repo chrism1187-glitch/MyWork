@@ -4,13 +4,23 @@ export async function GET() {
   try {
     const dbUrl = process.env.DATABASE_URL;
     const hasDb = !!dbUrl;
-    const dbUrlPreview = dbUrl ? dbUrl.substring(0, 50) + '...' : 'NOT SET';
+    const dbUrlPreview = dbUrl ? dbUrl.substring(0, 120) + '...' : 'NOT SET';
+    const hostPort = (() => {
+      if (!dbUrl) return 'NOT SET';
+      try {
+        const u = new URL(dbUrl.replace('postgresql://', 'http://'));
+        return `${u.hostname}:${u.port || 'default'}`;
+      } catch (e) {
+        return 'PARSE_ERROR';
+      }
+    })();
     
     return NextResponse.json({
       status: 'ok',
       database: {
         configured: hasDb,
         preview: dbUrlPreview,
+        hostPort,
       },
       timestamp: new Date().toISOString(),
     });
