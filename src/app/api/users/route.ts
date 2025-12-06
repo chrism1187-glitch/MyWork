@@ -43,11 +43,13 @@ export async function POST(req: NextRequest) {
     console.error('USER_API_ERROR:', error);
     const errorMsg = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : '';
-    return NextResponse.json({ 
+    const response = NextResponse.json({ 
       error: 'Failed to process user', 
       details: errorMsg,
       stack: errorStack,
       timestamp: new Date().toISOString()
     }, { status: 500 });
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return response;
   }
 }
