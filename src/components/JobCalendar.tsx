@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, Plus } from 'lucide-react';
+import { Clock, Plus, Users } from 'lucide-react';
 import JobDetailModal from './JobDetailModal';
 import CreateJobModal from './CreateJobModal';
+import InviteModal from './InviteModal';
 
 interface Job {
   id: string;
@@ -40,6 +41,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [loading, setLoading] = useState(true);
   
   // Use provided email or fallback to demo email
@@ -173,13 +175,22 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
           </div>
           <div className="flex gap-3">
             {isAdmin && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 transition rounded font-semibold"
-              >
-                <Plus size={20} />
-                New Job
-              </button>
+              <>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 transition rounded font-semibold"
+                >
+                  <Plus size={20} />
+                  New Job
+                </button>
+                <button
+                  onClick={() => setShowInviteModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white hover:bg-blue-800 transition rounded font-semibold"
+                >
+                  <Users size={20} />
+                  Invite Team
+                </button>
+              </>
             )}
             {onLogout && (
               <button
@@ -294,6 +305,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
         <CreateJobModal
           assignedToEmail={userEmail}
           createdByEmail={userEmail}
+          selectedDate={selectedDate.toISOString().split('T')[0]}
           onClose={() => setShowCreateModal(false)}
           onJobCreated={() => {
             setShowCreateModal(false);
@@ -301,6 +313,13 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
           }}
         />
       )}
+
+      <InviteModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        currentUserEmail={userEmail}
+      />
     </div>
   );
 }
+

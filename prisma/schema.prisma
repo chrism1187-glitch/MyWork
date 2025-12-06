@@ -121,3 +121,18 @@ model ServiceAlert {
   sentAt DateTime @default(now())
   acknowledgedAt DateTime?
 }
+
+// Invite model - for inviting new users to the platform
+model Invite {
+  id        String     @id @default(cuid())
+  email     String
+  token     String     @unique
+  status    String     @default("pending") // pending, accepted, expired
+  createdBy String
+  createdAt DateTime   @default(now())
+  expiresAt DateTime
+  acceptedAt DateTime?
+  
+  @@index([token])
+  @@index([email])
+}

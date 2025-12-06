@@ -43,19 +43,24 @@ export default function Home() {
   };
 
   if (!mounted) {
+    return null;
+  }
+
+  if (!currentUserEmail) {
+    return (
+      <>
+        <LoginScreen onLogin={handleLogin} />
+        <Toaster position="bottom-right" />
+      </>
+    );
+  }
+
   return (
     <>
       <JobCalendar 
         currentUserEmail={currentUserEmail || undefined} 
         currentUserName={currentUserName || undefined}
         currentUserRole={currentUserRole}
-        onLogout={handleLogout} 
-      />
-      <Toaster position="bottom-right" />
-    </>
-  );  <JobCalendar 
-        currentUserEmail={currentUserEmail || undefined} 
-        currentUserName={currentUserName || undefined} 
         onLogout={handleLogout} 
       />
       <Toaster position="bottom-right" />

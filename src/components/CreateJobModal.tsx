@@ -16,12 +16,13 @@ interface Props {
   onJobCreated: () => void;
   assignedToEmail: string;
   createdByEmail: string;
+  selectedDate?: string;
 }
 
-export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail, createdByEmail }: Props) {
+export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail, createdByEmail, selectedDate }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [scheduledDate, setScheduledDate] = useState(new Date().toISOString().split('T')[0]);
+  const [scheduledDate, setScheduledDate] = useState(selectedDate || new Date().toISOString().split('T')[0]);
   const [duration, setDuration] = useState(1);
   const [assignedToEmailState, setAssignedToEmailState] = useState(assignedToEmail);
   const [lineItems, setLineItems] = useState<LineItem[]>([
