@@ -344,23 +344,8 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                   >
                     <div className="bg-white border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 transition cursor-pointer">
                       <p className="text-lg font-semibold text-blue-900 mb-2">{job.customerAddress}</p>
-                      <div className="bg-slate-200 rounded overflow-hidden h-32 flex items-center justify-center">
-                        {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
-                          <img
-                            src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(job.customerAddress)}&zoom=17&size=600x300&maptype=roadmap&markers=color:red%7C${encodeURIComponent(job.customerAddress)}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
-                            alt="Location preview"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              const fallback = document.createElement('div');
-                              fallback.className = 'text-slate-500 text-sm';
-                              fallback.innerHTML = '📍 Click to view in Google Maps';
-                              e.currentTarget.parentElement?.appendChild(fallback);
-                            }}
-                          />
-                        ) : (
-                          <div className="text-slate-500 text-sm">📍 Click to view in Google Maps</div>
-                        )}
+                      <div className="bg-slate-100 rounded h-20 flex items-center justify-center text-slate-600 text-sm font-semibold">
+                        📍 Tap to view in Google Maps
                       </div>
                       <p className="text-sm text-blue-600 mt-2 text-center font-semibold">📍 Tap to open in Google Maps</p>
                     </div>
