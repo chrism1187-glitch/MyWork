@@ -58,6 +58,11 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
     }
   }, []);
 
+  // Refetch jobs when craftsman selection changes
+  useEffect(() => {
+    fetchJobs();
+  }, [selectedCraftsman]);
+
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/users');
