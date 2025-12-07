@@ -120,9 +120,24 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
 
   const getJobsForDate = (date: Date) => {
     return jobs.filter((job) => {
-      const jobDate = new Date(job.scheduledDate).toDateString();
-      return jobDate === date.toDateString();
+      const jobStart = new Date(job.scheduledDate);
+      jobStart.setHours(0, 0, 0, 0);
+      const jobEnd = new Date(jobStart);
+      jobEnd.setDate(jobEnd.getDate() + job.duration - 1);
+      
+      const checkDate = new Date(date);
+      checkDate.setHours(0, 0, 0, 0);
+      
+      return checkDate >= jobStart && checkDate <= jobEnd;
     });
+  };
+  
+  const isJobStartDate = (job: any, date: Date) => {
+    const jobStart = new Date(job.scheduledDate);
+    jobStart.setHours(0, 0, 0, 0);
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    return jobStart.getTime() === checkDate.getTime();
   };
 
   const daysInMonth = (date: Date) => {
@@ -164,7 +179,10 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
             {day}
           </div>
           <div className="mt-1 space-y-1">
-            {dayJobs.slice(0, 2).map((job) => {
+            {dayJobs.map((job) => {
+              const isStartDate = isJobStartDate(job, currentDate);
+              if (!isStartDate) return null; // Only show on start date to avoid duplicates
+              
               const isCompleted = job.status === 'completed';
               const hasDurationRequest = job.hasPendingDurationRequest;
               const hasAlerts = job.serviceAlerts && job.serviceAlerts.length > 0;
@@ -189,16 +207,23 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
               return (
                 <div
                   key={job.id}
-                  onClick={() => setSelectedJob(job)}
-                  className={`text-xs ${bgColor} ${textColor} p-1 cursor-pointer ${hoverColor} truncate border ${borderColor} flex items-center gap-1`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedJob(job);
+                  }}
+                  className={`text-xs ${bgColor} ${textColor} p-1 cursor-pointer ${hoverColor} truncate border ${borderColor} flex items-center gap-1 relative`}
+                  style={{ 
+                    gridColumn: job.duration > 1 ? `span ${Math.min(job.duration, 7 - (day % 7))}` : undefined,
+                  }}
                 >
                   <span className="flex-1 truncate">{job.title}</span>
+                  {job.duration > 1 && <span className="text-[10px] opacity-70">({job.duration}d)</span>}
                   {isCompleted && hasAlerts && (
                     <span className="text-yellow-300" title="Completed with alerts">⚠</span>
                   )}
                 </div>
               );
-            })}
+            }).filter(Boolean)}
             {dayJobs.length > 2 && (
               <div className="text-xs text-gray-600">+{dayJobs.length - 2} more</div>
             )}

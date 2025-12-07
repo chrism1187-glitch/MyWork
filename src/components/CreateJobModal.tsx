@@ -33,6 +33,9 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
   const [scheduledDate, setScheduledDate] = useState(selectedDate || getLocalDateString());
   const [duration, setDuration] = useState(1);
   const [assignedToEmailState, setAssignedToEmailState] = useState(assignedToEmail);
+  const [customerName, setCustomerName] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [lineItems, setLineItems] = useState<LineItem[]>([
     { title: 'Service', description: '', quantity: 1, rate: 100 },
   ]);
@@ -76,6 +79,9 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
           duration,
           assignedToEmail: assignedToEmailState,
           createdByEmail,
+          customerName,
+          customerAddress,
+          customerPhone,
           lineItems,
         }),
       });
@@ -126,6 +132,45 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
               placeholder="Job details and notes..." 
               className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base h-24 focus:outline-none focus:border-emerald-700"
             />
+          </div>
+
+          <div className="border-t-2 border-slate-200 pt-6">
+            <h3 className="text-xl font-bold text-slate-900 mb-4">Customer Information</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-lg font-bold text-slate-900 mb-3">Customer Name</label>
+                <input 
+                  type="text" 
+                  value={customerName} 
+                  onChange={(e) => setCustomerName(e.target.value)} 
+                  placeholder="e.g., John Smith" 
+                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-lg font-bold text-slate-900 mb-3">Customer Address</label>
+                <input 
+                  type="text" 
+                  value={customerAddress} 
+                  onChange={(e) => setCustomerAddress(e.target.value)} 
+                  placeholder="e.g., 123 Main St, City, State ZIP" 
+                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-lg font-bold text-slate-900 mb-3">Customer Phone</label>
+                <input 
+                  type="tel" 
+                  value={customerPhone} 
+                  onChange={(e) => setCustomerPhone(e.target.value)} 
+                  placeholder="e.g., (555) 123-4567" 
+                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6">

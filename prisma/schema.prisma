@@ -42,6 +42,11 @@ model Job {
   endDate       DateTime?
   duration      Int      @default(1) // days
   
+  // Customer Information
+  customerName    String?
+  customerAddress String?
+  customerPhone   String?
+  
   // Assignments
   assignedToId  String
   assignedTo    User    @relation("assignedTo", fields: [assignedToId], references: [id], onDelete: Cascade)

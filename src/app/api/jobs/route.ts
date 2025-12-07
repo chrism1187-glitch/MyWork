@@ -58,6 +58,9 @@ export async function POST(req: NextRequest) {
       createdByEmail,
       lineItems,
       duration,
+      customerName,
+      customerAddress,
+      customerPhone,
     } = body;
 
     const assigneeId = assignedToId
@@ -86,6 +89,9 @@ export async function POST(req: NextRequest) {
         assignedToId: assigneeId,
         createdById: creatorId,
         duration: duration || 1,
+        customerName,
+        customerAddress,
+        customerPhone,
         lineItems: {
           create: (lineItems || []).map((item: any) => ({
             ...item,
