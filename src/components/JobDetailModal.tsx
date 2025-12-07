@@ -312,24 +312,24 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow-2xl my-8">
-        <div className="sticky top-0 bg-slate-900 text-white p-6 flex justify-between items-center rounded-t-lg">
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-2xl my-6">
+        <div className="sticky top-0 bg-slate-900 text-white p-5 flex justify-between items-center rounded-t-lg">
           {isEditing ? (
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-3xl font-bold bg-slate-800 border border-slate-600 rounded px-4 py-2 text-white flex-1 mr-4"
+              className="text-2xl font-bold bg-slate-800 border border-slate-600 rounded px-3.5 py-2 text-white flex-1 mr-3"
             />
           ) : (
-            <h2 className="text-3xl font-bold">{title}</h2>
+            <h2 className="text-2xl font-bold leading-tight">{title}</h2>
           )}
           <div className="flex gap-2">
             {isAdmin && isEditing && (
               <>
                 <button 
                   onClick={handleSaveEdit} 
-                  className="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded transition font-bold text-sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 px-3.5 py-2 rounded transition font-bold text-sm"
                 >
                   Save
                 </button>
@@ -339,7 +339,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                     setTitle(job.title);
                     setDescription(job.description || '');
                   }} 
-                  className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded transition font-bold text-sm"
+                  className="bg-slate-700 hover:bg-slate-600 px-3.5 py-2 rounded transition font-bold text-sm"
                 >
                   Cancel
                 </button>
@@ -348,31 +348,31 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
             {isAdmin && !isEditing && (
               <button 
                 onClick={() => setIsEditing(true)} 
-                className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded transition font-bold text-sm"
+                className="bg-slate-700 hover:bg-slate-600 px-3.5 py-2 rounded transition font-bold text-sm"
               >
                 Edit
               </button>
             )}
-            <button onClick={onClose} className="bg-slate-700 hover:bg-slate-600 p-2 rounded transition text-2xl">
-              <X size={28} />
+            <button onClick={onClose} className="bg-slate-700 hover:bg-slate-600 p-2 rounded transition text-xl">
+              <X size={22} />
             </button>
           </div>
         </div>
 
-        <div className="p-8 space-y-8 max-h-96 overflow-y-auto">
+        <div className="p-6 space-y-6 max-h-[72vh] overflow-y-auto">
           {/* Customer Information - Prominent Display */}
           {(customerName || customerAddress || customerPhone || isEditing) && (
-            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6 space-y-4">
-              <h3 className="text-2xl font-bold text-blue-900 mb-4">Customer Information</h3>
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4 space-y-3">
+              <h3 className="text-xl font-bold text-blue-900">Customer Information</h3>
               
               {isEditing ? (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
                     <p className="text-xs font-bold text-blue-600 uppercase mb-1">Customer Name</p>
                     <input
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-base focus:outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2.5 border-2 border-blue-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                       placeholder="Customer name"
                     />
                   </div>
@@ -381,7 +381,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                     <input
                       value={customerAddress}
                       onChange={(e) => setCustomerAddress(e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-base focus:outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2.5 border-2 border-blue-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                       placeholder="Address"
                     />
                   </div>
@@ -390,7 +390,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                     <input
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-base focus:outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2.5 border-2 border-blue-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                       placeholder="Phone"
                     />
                   </div>
@@ -400,7 +400,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                   {customerName && (
                     <div>
                       <p className="text-xs font-bold text-blue-600 uppercase mb-1">Customer Name</p>
-                      <p className="text-2xl font-bold text-blue-900">{customerName}</p>
+                      <p className="text-xl font-bold text-blue-900">{customerName}</p>
                     </div>
                   )}
                   
@@ -413,8 +413,8 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                         rel="noopener noreferrer"
                         className="block border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 hover:bg-blue-50 transition cursor-pointer"
                       >
-                        <p className="text-lg font-semibold text-blue-900 underline">{customerAddress}</p>
-                        <p className="text-sm text-blue-700 mt-2 font-semibold">📍 Open in Google Maps</p>
+                        <p className="text-base font-semibold text-blue-900 underline leading-snug">{customerAddress}</p>
+                        <p className="text-xs text-blue-700 mt-2 font-semibold">📍 Open in Google Maps</p>
                       </a>
                     </div>
                   )}
@@ -426,8 +426,8 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                         href={`tel:${customerPhone}`}
                         className="block bg-white border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 hover:bg-blue-50 transition text-center"
                       >
-                        <p className="text-2xl font-bold text-blue-900">📞 {customerPhone}</p>
-                        <p className="text-sm text-blue-600 mt-1 font-semibold">Tap to call</p>
+                        <p className="text-xl font-bold text-blue-900">📞 {customerPhone}</p>
+                        <p className="text-xs text-blue-600 mt-1 font-semibold">Tap to call</p>
                       </a>
                     </div>
                   )}
@@ -442,7 +442,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-3 border-2 border-emerald-300 rounded-lg text-base h-24 focus:outline-none focus:border-emerald-600"
+                className="w-full p-3 border-2 border-emerald-300 rounded-lg text-sm h-24 focus:outline-none focus:border-emerald-600"
                 placeholder="Enter job description..."
               />
             </div>
@@ -451,8 +451,8 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
           <div className="grid grid-cols-2 gap-6 pb-6 border-b-2 border-slate-200">
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase mb-2">Assigned To</p>
-              <p className="text-xl font-bold text-slate-900">{job.assignedTo.name}</p>
-              <p className="text-sm text-slate-600">{job.assignedTo.email}</p>
+              <p className="text-lg font-bold text-slate-900 leading-tight">{job.assignedTo.name}</p>
+              <p className="text-xs text-slate-600">{job.assignedTo.email}</p>
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase mb-2">Scheduled Date</p>
@@ -461,10 +461,10 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                   type="date"
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                  className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
                 />
               ) : (
-                <p className="text-xl font-bold text-slate-900">
+                <p className="text-lg font-bold text-slate-900">
                   {new Date(scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
               )}
@@ -477,7 +477,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
               <select 
                 value={status} 
                 onChange={(e) => handleStatusChange(e.target.value)} 
-                className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-lg font-semibold text-slate-900 bg-white focus:outline-none focus:border-emerald-700"
+                className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm font-semibold text-slate-900 bg-white focus:outline-none focus:border-emerald-700"
               >
                 <option value="pending">Pending</option>
                 <option value="in-progress">In Progress</option>
@@ -493,23 +493,23 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                   min={1}
                   value={duration}
                   onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                  className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
                 />
               ) : (
                 <div className="flex gap-3 items-center">
                   {isAdmin && (
                     <button 
                       onClick={() => handleDurationChange(duration - 1)} 
-                      className="px-4 py-2 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-2xl"
+                      className="px-3 py-1.5 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-xl"
                     >
                       −
                     </button>
                   )}
-                  <span className="text-3xl font-bold text-slate-900 flex-1 text-center">{duration}</span>
+                  <span className="text-2xl font-bold text-slate-900 flex-1 text-center">{duration}</span>
                   {isAdmin && (
                     <button 
                       onClick={() => handleDurationChange(duration + 1)} 
-                      className="px-4 py-2 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-2xl"
+                      className="px-3 py-1.5 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-xl"
                     >
                       +
                     </button>
@@ -521,26 +521,26 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
 
           {job.description && (
             <div className="border-t-2 border-slate-200 pt-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Job Description</h3>
+              <h3 className="text-base font-bold text-slate-900 mb-2">Job Description</h3>
               <div className="p-4 bg-slate-50 border-2 border-slate-200 rounded-lg">
-                <p className="text-slate-700 whitespace-pre-wrap">{job.description}</p>
+                <p className="text-slate-700 whitespace-pre-wrap text-sm leading-relaxed">{job.description}</p>
               </div>
             </div>
           )}
 
           <div className="border-t-2 border-slate-200 pt-6">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Notes ({notes.length})</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-3">Notes ({notes.length})</h3>
             <div className="space-y-3">
               <textarea 
                 placeholder="Add a note..." 
                 value={newNote} 
                 onChange={(e) => setNewNote(e.target.value)} 
-                className="w-full p-4 border-2 border-slate-300 rounded-lg text-base h-24 focus:outline-none focus:border-emerald-700"
+                className="w-full p-3 border-2 border-slate-300 rounded-lg text-sm h-24 focus:outline-none focus:border-emerald-700"
               />
               <button 
                 onClick={handleAddNote} 
                 disabled={loadingNotes} 
-                className="w-full px-4 py-3 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 text-base disabled:bg-gray-400 transition"
+                className="w-full px-3.5 py-2.5 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 text-sm disabled:bg-gray-400 transition"
               >
                 {loadingNotes ? 'Adding...' : 'Add Note'}
               </button>
@@ -549,8 +549,8 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
               ) : (
                 notes.map((note) => (
                   <div key={note.id} className="p-4 bg-slate-50 border-2 border-slate-200 rounded-lg">
-                    <p className="font-bold text-slate-900">{note.user?.name || 'Unknown User'}</p>
-                    <p className="text-base text-slate-700 mt-2">{note.content}</p>
+                    <p className="font-bold text-slate-900 text-sm">{note.user?.name || 'Unknown User'}</p>
+                    <p className="text-sm text-slate-700 mt-1.5 leading-relaxed">{note.content}</p>
                     <p className="text-xs text-slate-500 mt-2">{note.createdAt ? new Date(note.createdAt).toLocaleDateString() : 'Unknown date'}</p>
                   </div>
                 ))
@@ -559,9 +559,9 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
           </div>
 
           <div className="border-t-2 border-slate-200 pt-6">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Photos ({photos.length})</h3>
-            <label className="w-full py-4 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 flex items-center justify-center gap-3 mb-4 cursor-pointer transition text-base">
-              <Camera size={24} />
+            <h3 className="text-base font-bold text-slate-900 mb-3">Photos ({photos.length})</h3>
+            <label className="w-full py-3 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 flex items-center justify-center gap-3 mb-3 cursor-pointer transition text-sm">
+              <Camera size={20} />
               Add Photo
               <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
             </label>
@@ -581,16 +581,16 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
 
           <button
             onClick={() => setShowAlertModal(true)}
-            className="w-full py-4 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition flex items-center justify-center gap-2 text-lg"
+            className="w-full py-3 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition flex items-center justify-center gap-2 text-sm"
           >
-            <AlertTriangle size={24} />
+            <AlertTriangle size={18} />
             Report Service Issue
           </button>
 
           {showAlertModal && (
             <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
               <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                <h3 className="text-xl font-bold mb-4 text-slate-900">Report Service Issue</h3>
+                <h3 className="text-lg font-bold mb-3 text-slate-900">Report Service Issue</h3>
                 
                 <div className="space-y-4">
                   <div>
@@ -598,7 +598,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                     <select
                       value={alertSeverity}
                       onChange={(e) => setAlertSeverity(e.target.value as 'urgent' | 'non-urgent')}
-                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-red-500"
+                      className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-red-500"
                     >
                       <option value="non-urgent">Non-Urgent</option>
                       <option value="urgent">Urgent</option>
@@ -611,14 +611,14 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                       value={alertDescription}
                       onChange={(e) => setAlertDescription(e.target.value)}
                       placeholder="Describe the service issue..."
-                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base h-32 focus:outline-none focus:border-red-500"
+                      className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm h-28 focus:outline-none focus:border-red-500"
                     />
                   </div>
                   
                   <div className="flex gap-3">
                     <button
                       onClick={handleServiceAlert}
-                      className="flex-1 py-3 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition"
+                      className="flex-1 py-2.5 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition text-sm"
                     >
                       Submit Alert
                     </button>
@@ -628,7 +628,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                         setAlertDescription('');
                         setAlertSeverity('non-urgent');
                       }}
-                      className="flex-1 py-3 bg-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-400 transition"
+                      className="flex-1 py-2.5 bg-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-400 transition text-sm"
                     >
                       Cancel
                     </button>
@@ -652,7 +652,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
           {isAdmin && (
             <button
               onClick={handleDeleteJob}
-              className="w-full py-4 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition text-lg"
+              className="w-full py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition text-sm"
             >
               Delete Job
             </button>

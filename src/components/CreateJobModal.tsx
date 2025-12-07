@@ -4,12 +4,25 @@ import { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+type Unit = 'LF' | 'SF' | 'EA';
+
 interface LineItem {
   title: string;
-  description: string;
+  unit: Unit;
   quantity: number;
-  rate: number;
+  note: string;
 }
+
+const LINE_ITEM_PRESETS: { label: string; unit: Unit }[] = [
+  { label: 'Power wash / clean', unit: 'SF' },
+  { label: 'Scrape & prep surfaces', unit: 'SF' },
+  { label: 'Prime surfaces', unit: 'SF' },
+  { label: 'Paint walls (2 coats)', unit: 'SF' },
+  { label: 'Paint trim/doors', unit: 'LF' },
+  { label: 'Caulk / seal gaps', unit: 'LF' },
+  { label: 'Stain / seal wood', unit: 'SF' },
+  { label: 'Cleanup & haul away', unit: 'EA' },
+];
 
 interface Props {
   onClose: () => void;
@@ -37,7 +50,7 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
   const [customerAddress, setCustomerAddress] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { title: 'Service', description: '', quantity: 1, rate: 100 },
+    { title: '', unit: 'EA', quantity: 1, note: '' },
   ]);
   const [loading, setLoading] = useState(false);
 
@@ -49,7 +62,7 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
   }, [selectedDate]);
 
   const addLineItem = () => {
-    setLineItems([...lineItems, { title: '', description: '', quantity: 1, rate: 0 }]);
+    setLineItems([...lineItems, { title: '', unit: 'EA', quantity: 1, note: '' }]);
   };
 
   const removeLineItem = (index: number) => {
@@ -62,8 +75,6 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
     setLineItems(updated);
   };
 
-  const totalAmount = lineItems.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-
   const handleCreateJob = async () => {
     if (!title.trim()) {
       toast.error('Job title is required');
@@ -73,9 +84,26 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
       toast.error('At least one line item is required');
       return;
     }
+    if (lineItems.some((li) => !li.title.trim())) {
+      toast.error('Each line item needs a label');
+      return;
+    }
 
     setLoading(true);
     try {
+      const formattedLineItems = lineItems.map((item) => {
+        const descriptionParts: string[] = [];
+        if (item.unit) descriptionParts.push(`[${item.unit}]`);
+        if (item.note?.trim()) descriptionParts.push(item.note.trim());
+
+        return {
+          title: item.title || 'Line item',
+          description: descriptionParts.join(' '),
+          quantity: item.quantity || 1,
+          rate: 0,
+        };
+      });
+
       const response = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -89,7 +117,7 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
           customerName,
           customerAddress,
           customerPhone,
-          lineItems,
+          lineItems: formattedLineItems,
         }),
       });
 
@@ -111,70 +139,70 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow-2xl my-8">
-        <div className="sticky top-0 bg-slate-900 text-white p-6 flex justify-between items-center rounded-t-lg">
-          <h2 className="text-3xl font-bold">Create New Job</h2>
-          <button onClick={onClose} className="bg-slate-700 hover:bg-slate-600 p-2 rounded transition text-2xl">
-            <X size={28} />
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-2xl my-6">
+        <div className="sticky top-0 bg-slate-900 text-white p-5 flex justify-between items-center rounded-t-lg">
+          <h2 className="text-2xl font-bold leading-tight">Create New Job</h2>
+          <button onClick={onClose} className="bg-slate-700 hover:bg-slate-600 p-2 rounded transition text-xl">
+            <X size={22} />
           </button>
         </div>
 
-        <div className="p-8 space-y-8 max-h-96 overflow-y-auto">
+        <div className="p-6 space-y-6 max-h-[72vh] overflow-y-auto">
           <div>
-            <label className="block text-lg font-bold text-slate-900 mb-3">Job Title *</label>
+            <label className="block text-base font-semibold text-slate-900 mb-2">Job Title *</label>
             <input 
               type="text" 
               value={title} 
               onChange={(e) => setTitle(e.target.value)} 
               placeholder="e.g., Roof Installation" 
-              className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+              className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
             />
           </div>
 
           <div>
-            <label className="block text-lg font-bold text-slate-900 mb-3">Description</label>
+            <label className="block text-base font-semibold text-slate-900 mb-2">Description</label>
             <textarea 
               value={description} 
               onChange={(e) => setDescription(e.target.value)} 
               placeholder="Job details and notes..." 
-              className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base h-24 focus:outline-none focus:border-emerald-700"
+              className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm h-24 focus:outline-none focus:border-emerald-700"
             />
           </div>
 
-          <div className="border-t-2 border-slate-200 pt-6">
-            <h3 className="text-xl font-bold text-slate-900 mb-4">Customer Information</h3>
+          <div className="border-t-2 border-slate-200 pt-5">
+            <h3 className="text-base font-semibold text-slate-900 mb-3">Customer Information</h3>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-lg font-bold text-slate-900 mb-3">Customer Name</label>
+                <label className="block text-sm font-semibold text-slate-900 mb-1.5">Customer Name</label>
                 <input 
                   type="text" 
                   value={customerName} 
                   onChange={(e) => setCustomerName(e.target.value)} 
                   placeholder="e.g., John Smith" 
-                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                  className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
                 />
               </div>
               
               <div>
-                <label className="block text-lg font-bold text-slate-900 mb-3">Customer Address</label>
+                <label className="block text-sm font-semibold text-slate-900 mb-1.5">Customer Address</label>
                 <input 
                   type="text" 
                   value={customerAddress} 
                   onChange={(e) => setCustomerAddress(e.target.value)} 
                   placeholder="e.g., 123 Main St, City, State ZIP" 
-                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                  className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
                 />
               </div>
               
               <div>
-                <label className="block text-lg font-bold text-slate-900 mb-3">Customer Phone</label>
+                <label className="block text-sm font-semibold text-slate-900 mb-1.5">Customer Phone</label>
                 <input 
                   type="tel" 
                   value={customerPhone} 
                   onChange={(e) => setCustomerPhone(e.target.value)} 
                   placeholder="e.g., (555) 123-4567" 
-                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                  className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
                 />
               </div>
             </div>
@@ -182,94 +210,125 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
 
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-lg font-bold text-slate-900 mb-3">Scheduled Date</label>
+              <label className="block text-sm font-semibold text-slate-900 mb-2">Scheduled Date</label>
               <input 
                 type="date" 
                 value={scheduledDate} 
                 onChange={(e) => setScheduledDate(e.target.value)} 
-                className="w-full px-5 py-5 h-16 border-2 border-slate-300 rounded-lg text-2xl focus:outline-none focus:border-emerald-700"
-                style={{ minHeight: '72px' }}
+                className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
               />
             </div>
             <div>
-              <label className="block text-lg font-bold text-slate-900 mb-3">Duration (days)</label>
+              <label className="block text-sm font-semibold text-slate-900 mb-2">Duration (days)</label>
               <input 
                 type="number" 
                 min="1" 
                 value={duration} 
                 onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 1))} 
-                className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-lg font-bold text-slate-900 mb-3">Assign To</label>
+            <label className="block text-sm font-semibold text-slate-900 mb-2">Assign To</label>
             <select 
               value={assignedToEmailState} 
               onChange={(e) => setAssignedToEmailState(e.target.value)} 
-              className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+              className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
             >
               <option value="john@example.com">John Doe (john@example.com)</option>
               <option value="admin@example.com">Admin (admin@example.com)</option>
             </select>
           </div>
 
-          <div className="border-t-2 border-slate-200 pt-6">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Line Items ({lineItems.length})</h3>
+          <div className="border-t-2 border-slate-200 pt-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-semibold text-slate-900">Line Items ({lineItems.length})</h3>
+              <p className="text-xs text-slate-500">No pricing shown (quantity + unit only)</p>
+            </div>
             <div className="space-y-4">
               {lineItems.map((item, index) => (
-                <div key={index} className="p-4 bg-slate-50 border-2 border-slate-200 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <input
-                      type="text"
-                      value={item.title}
-                      onChange={(e) => updateLineItem(index, 'title', e.target.value)}
-                      placeholder="Item title"
-                      className="px-3 py-3 border-2 border-slate-300 rounded-lg text-base font-semibold"
-                    />
-                    <input
-                      type="text"
-                      value={item.description}
-                      onChange={(e) => updateLineItem(index, 'description', e.target.value)}
-                      placeholder="Description"
-                      className="px-3 py-3 border-2 border-slate-300 rounded-lg text-base"
-                    />
+                <div key={index} className="p-4 bg-slate-50 border-2 border-slate-200 rounded-lg space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-600 mb-1">Preset</p>
+                      <select
+                        value={LINE_ITEM_PRESETS.find(p => p.label === item.title)?.label || ''}
+                        onChange={(e) => {
+                          const preset = LINE_ITEM_PRESETS.find(p => p.label === e.target.value);
+                          if (preset) {
+                            updateLineItem(index, 'title', preset.label);
+                            updateLineItem(index, 'unit', preset.unit);
+                          } else {
+                            updateLineItem(index, 'title', '');
+                          }
+                        }}
+                        className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm"
+                      >
+                        <option value="">Custom / Other</option>
+                        {LINE_ITEM_PRESETS.map((preset) => (
+                          <option key={preset.label} value={preset.label}>
+                            {preset.label} ({preset.unit})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-600 mb-1">Label</p>
+                      <input
+                        type="text"
+                        value={item.title}
+                        onChange={(e) => updateLineItem(index, 'title', e.target.value)}
+                        placeholder="e.g., Paint walls"
+                        className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm"
+                      />
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 items-end mb-4">
+                  <div className="grid grid-cols-3 gap-3 items-end">
                     <div>
-                      <p className="text-sm font-bold text-slate-600 mb-2">QTY</p>
+                      <p className="text-xs font-semibold text-slate-600 mb-1">Quantity</p>
                       <input
                         type="number"
                         min="1"
                         value={item.quantity}
                         onChange={(e) => updateLineItem(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-full px-3 py-3 border-2 border-slate-300 rounded-lg text-base"
+                        className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm"
                       />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-600 mb-2">RATE</p>
+                      <p className="text-xs font-semibold text-slate-600 mb-1">Unit</p>
+                      <select
+                        value={item.unit}
+                        onChange={(e) => updateLineItem(index, 'unit', e.target.value as Unit)}
+                        className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm"
+                      >
+                        <option value="LF">LF</option>
+                        <option value="SF">SF</option>
+                        <option value="EA">EA</option>
+                      </select>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-600 mb-1">Note (optional)</p>
                       <input
-                        type="number"
-                        min="0"
-                        value={item.rate}
-                        onChange={(e) => updateLineItem(index, 'rate', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-3 border-2 border-slate-300 rounded-lg text-base"
+                        type="text"
+                        value={item.note}
+                        onChange={(e) => updateLineItem(index, 'note', e.target.value)}
+                        placeholder="e.g., 2 coats"
+                        className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm"
                       />
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-slate-600 mb-2">TOTAL</p>
-                      <p className="text-2xl font-bold text-emerald-700">\${(item.quantity * item.rate).toFixed(2)}</p>
-                    </div>
                   </div>
+
+                  <div className="text-xs text-slate-600">Preview: {item.quantity} {item.unit} — {item.title || 'Line item'} {item.note ? `(${item.note})` : ''}</div>
 
                   {lineItems.length > 1 && (
                     <button
                       onClick={() => removeLineItem(index)}
-                      className="w-full px-3 py-3 bg-red-700 text-white hover:bg-red-800 rounded-lg text-base font-bold flex items-center justify-center gap-2 transition"
+                      className="w-full px-3 py-2.5 bg-red-700 text-white hover:bg-red-800 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition"
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={18} />
                       Remove
                     </button>
                   )}
@@ -278,33 +337,26 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
 
               <button
                 onClick={addLineItem}
-                className="w-full py-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-700 hover:border-emerald-700 hover:text-emerald-700 font-bold text-base flex items-center justify-center gap-2 transition"
+                className="w-full py-2.5 border-2 border-dashed border-slate-300 rounded-lg text-slate-700 hover:border-emerald-700 hover:text-emerald-700 font-bold text-sm flex items-center justify-center gap-2 transition"
               >
-                <Plus size={20} />
+                <Plus size={18} />
                 Add Line Item
               </button>
             </div>
           </div>
-
-          <div className="p-6 bg-emerald-50 border-2 border-emerald-300 rounded-lg">
-            <div className="flex justify-between items-center text-2xl font-bold text-emerald-900">
-              <span>Total Job Value:</span>
-              <span>\${totalAmount.toFixed(2)}</span>
-            </div>
-          </div>
         </div>
 
-        <div className="sticky bottom-0 bg-slate-100 border-t-2 border-slate-200 p-6 flex gap-4 justify-end rounded-b-lg">
+        <div className="sticky bottom-0 bg-slate-100 border-t-2 border-slate-200 p-5 flex gap-3 justify-end rounded-b-lg">
           <button 
             onClick={onClose} 
-            className="px-6 py-3 border-2 border-slate-300 rounded-lg hover:bg-slate-200 font-bold text-base transition"
+            className="px-5 py-2.5 border-2 border-slate-300 rounded-lg hover:bg-slate-200 font-bold text-sm transition"
           >
             Cancel
           </button>
           <button 
             onClick={handleCreateJob} 
             disabled={loading} 
-            className="px-8 py-3 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 font-bold text-base disabled:bg-gray-400 transition"
+            className="px-6 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 font-bold text-sm disabled:bg-gray-400 transition"
           >
             {loading ? 'Creating...' : 'Create Job'}
           </button>
