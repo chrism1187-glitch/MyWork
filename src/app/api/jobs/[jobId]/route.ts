@@ -42,17 +42,32 @@ export async function PUT(
   try {
     const { jobId } = await params;
     const body = await req.json();
-    const { title, description, status, startDate, endDate, duration } = body;
+    const {
+      title,
+      description,
+      status,
+      startDate,
+      endDate,
+      duration,
+      scheduledDate,
+      customerName,
+      customerAddress,
+      customerPhone,
+    } = body;
 
     const job = await prisma.job.update({
       where: { id: jobId },
       data: {
-        ...(title && { title }),
-        ...(description && { description }),
-        ...(status && { status }),
-        ...(startDate && { startDate: new Date(startDate) }),
-        ...(endDate && { endDate: new Date(endDate) }),
-        ...(duration && { duration }),
+        ...(title !== undefined ? { title } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(status !== undefined ? { status } : {}),
+        ...(startDate ? { startDate: new Date(startDate) } : {}),
+        ...(endDate ? { endDate: new Date(endDate) } : {}),
+        ...(scheduledDate ? { scheduledDate: new Date(`${scheduledDate}T00:00:00`) } : {}),
+        ...(typeof duration === 'number' ? { duration } : {}),
+        ...(customerName !== undefined ? { customerName } : {}),
+        ...(customerAddress !== undefined ? { customerAddress } : {}),
+        ...(customerPhone !== undefined ? { customerPhone } : {}),
       },
       include: {
         assignedTo: true,

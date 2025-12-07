@@ -118,6 +118,13 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
     }
   };
 
+  const formatLocalDate = (date: Date) => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const getJobsForDate = (date: Date) => {
     return jobs.filter((job) => {
       const jobStart = new Date(job.scheduledDate);
@@ -130,14 +137,6 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
       
       return checkDate >= jobStart && checkDate <= jobEnd;
     });
-  };
-  
-  const isJobStartDate = (job: any, date: Date) => {
-    const jobStart = new Date(job.scheduledDate);
-    jobStart.setHours(0, 0, 0, 0);
-    const checkDate = new Date(date);
-    checkDate.setHours(0, 0, 0, 0);
-    return jobStart.getTime() === checkDate.getTime();
   };
 
   const daysInMonth = (date: Date) => {
@@ -179,10 +178,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
             {day}
           </div>
           <div className="mt-1 space-y-1">
-            {dayJobs.map((job) => {
-              const isStartDate = isJobStartDate(job, currentDate);
-              if (!isStartDate) return null; // Only show on start date to avoid duplicates
-              
+            {dayJobs.slice(0, 3).map((job) => {
               const isCompleted = job.status === 'completed';
               const hasDurationRequest = job.hasPendingDurationRequest;
               const hasAlerts = job.serviceAlerts && job.serviceAlerts.length > 0;
@@ -211,10 +207,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
                     e.stopPropagation();
                     setSelectedJob(job);
                   }}
-                  className={`text-xs ${bgColor} ${textColor} p-1 cursor-pointer ${hoverColor} truncate border ${borderColor} flex items-center gap-1 relative`}
-                  style={{ 
-                    gridColumn: job.duration > 1 ? `span ${Math.min(job.duration, 7 - (day % 7))}` : undefined,
-                  }}
+                  className={`text-xs ${bgColor} ${textColor} p-1 cursor-pointer ${hoverColor} truncate border ${borderColor} flex items-center gap-1`}
                 >
                   <span className="flex-1 truncate">{job.title}</span>
                   {job.duration > 1 && <span className="text-[10px] opacity-70">({job.duration}d)</span>}
@@ -223,9 +216,9 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
                   )}
                 </div>
               );
-            }).filter(Boolean)}
-            {dayJobs.length > 2 && (
-              <div className="text-xs text-gray-600">+{dayJobs.length - 2} more</div>
+            })}
+            {dayJobs.length > 3 && (
+              <div className="text-xs text-gray-600">+{dayJobs.length - 3} more</div>
             )}
           </div>
         </div>
@@ -413,7 +406,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
         <CreateJobModal
           assignedToEmail={userEmail}
           createdByEmail={userEmail}
-          selectedDate={selectedDate.toISOString().split('T')[0]}
+          selectedDate={formatLocalDate(selectedDate)}
           onClose={() => setShowCreateModal(false)}
           onJobCreated={() => {
             setShowCreateModal(false);

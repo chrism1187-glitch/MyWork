@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -40,6 +40,13 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
     { title: 'Service', description: '', quantity: 1, rate: 100 },
   ]);
   const [loading, setLoading] = useState(false);
+
+  // Keep scheduled date in sync with calendar selection to avoid off-by-one
+  useEffect(() => {
+    if (selectedDate) {
+      setScheduledDate(selectedDate);
+    }
+  }, [selectedDate]);
 
   const addLineItem = () => {
     setLineItems([...lineItems, { title: '', description: '', quantity: 1, rate: 0 }]);
@@ -180,8 +187,8 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
                 type="date" 
                 value={scheduledDate} 
                 onChange={(e) => setScheduledDate(e.target.value)} 
-                className="w-full px-4 py-4 border-2 border-slate-300 rounded-lg text-xl focus:outline-none focus:border-emerald-700"
-                style={{ minHeight: '56px' }}
+                className="w-full px-4 py-4 h-14 border-2 border-slate-300 rounded-lg text-xl focus:outline-none focus:border-emerald-700"
+                style={{ minHeight: '64px' }}
               />
             </div>
             <div>

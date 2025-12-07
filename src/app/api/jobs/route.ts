@@ -85,7 +85,9 @@ export async function POST(req: NextRequest) {
       data: {
         title,
         description,
-        scheduledDate: new Date(scheduledDate),
+        scheduledDate: scheduledDate
+          ? new Date(`${scheduledDate}T00:00:00`)
+          : new Date(),
         assignedToId: assigneeId,
         createdById: creatorId,
         duration: duration || 1,

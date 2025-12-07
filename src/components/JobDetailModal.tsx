@@ -34,6 +34,16 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
   const [duration, setDuration] = useState(job.duration);
   const [title, setTitle] = useState(job.title);
   const [description, setDescription] = useState(job.description || '');
+  const [scheduledDate, setScheduledDate] = useState(() => {
+    const d = new Date(job.scheduledDate);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  });
+  const [customerName, setCustomerName] = useState(job.customerName || '');
+  const [customerAddress, setCustomerAddress] = useState(job.customerAddress || '');
+  const [customerPhone, setCustomerPhone] = useState(job.customerPhone || '');
   const [isEditing, setIsEditing] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [notes, setNotes] = useState(job.notes || []);
@@ -120,11 +130,23 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
       toast.error('Job title cannot be empty');
       return;
     }
+    if (!scheduledDate) {
+      toast.error('Scheduled date is required');
+      return;
+    }
     try {
       const response = await fetch(`/api/jobs/${job.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description }),
+        body: JSON.stringify({
+          title,
+          description,
+          scheduledDate,
+          duration,
+          customerName,
+          customerAddress,
+          customerPhone,
+        }),
       });
       if (response.ok) {
         toast.success('Job updated');
@@ -322,48 +344,82 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
 
         <div className="p-8 space-y-8 max-h-96 overflow-y-auto">
           {/* Customer Information - Prominent Display */}
-          {(job.customerName || job.customerAddress || job.customerPhone) && (
+          {(customerName || customerAddress || customerPhone || isEditing) && (
             <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6 space-y-4">
               <h3 className="text-2xl font-bold text-blue-900 mb-4">Customer Information</h3>
               
-              {job.customerName && (
-                <div>
-                  <p className="text-xs font-bold text-blue-600 uppercase mb-1">Customer Name</p>
-                  <p className="text-2xl font-bold text-blue-900">{job.customerName}</p>
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-bold text-blue-600 uppercase mb-1">Customer Name</p>
+                    <input
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-base focus:outline-none focus:border-blue-500"
+                      placeholder="Customer name"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-blue-600 uppercase mb-1">Address</p>
+                    <input
+                      value={customerAddress}
+                      onChange={(e) => setCustomerAddress(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-base focus:outline-none focus:border-blue-500"
+                      placeholder="Address"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-blue-600 uppercase mb-1">Phone</p>
+                    <input
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-base focus:outline-none focus:border-blue-500"
+                      placeholder="Phone"
+                    />
+                  </div>
                 </div>
-              )}
-              
-              {job.customerAddress && (
-                <div>
-                  <p className="text-xs font-bold text-blue-600 uppercase mb-2">Address</p>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.customerAddress)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
-                  >
-                    <div className="bg-white border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 transition cursor-pointer">
-                      <p className="text-lg font-semibold text-blue-900 mb-2">{job.customerAddress}</p>
-                      <div className="bg-slate-100 rounded h-20 flex items-center justify-center text-slate-600 text-sm font-semibold">
-                        📍 Tap to view in Google Maps
-                      </div>
-                      <p className="text-sm text-blue-600 mt-2 text-center font-semibold">📍 Tap to open in Google Maps</p>
+              ) : (
+                <>
+                  {customerName && (
+                    <div>
+                      <p className="text-xs font-bold text-blue-600 uppercase mb-1">Customer Name</p>
+                      <p className="text-2xl font-bold text-blue-900">{customerName}</p>
                     </div>
-                  </a>
-                </div>
-              )}
-              
-              {job.customerPhone && (
-                <div>
-                  <p className="text-xs font-bold text-blue-600 uppercase mb-2">Phone Number</p>
-                  <a
-                    href={`tel:${job.customerPhone}`}
-                    className="block bg-white border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 hover:bg-blue-50 transition text-center"
-                  >
-                    <p className="text-2xl font-bold text-blue-900">📞 {job.customerPhone}</p>
-                    <p className="text-sm text-blue-600 mt-1 font-semibold">Tap to call</p>
-                  </a>
-                </div>
+                  )}
+                  
+                  {customerAddress && (
+                    <div>
+                      <p className="text-xs font-bold text-blue-600 uppercase mb-2">Address</p>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(customerAddress)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        <div className="bg-white border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 transition cursor-pointer">
+                          <p className="text-lg font-semibold text-blue-900 mb-2">{customerAddress}</p>
+                          <div className="bg-slate-100 rounded h-20 flex items-center justify-center text-slate-600 text-sm font-semibold">
+                            📍 Tap to view in Google Maps
+                          </div>
+                          <p className="text-sm text-blue-600 mt-2 text-center font-semibold">📍 Tap to open in Google Maps</p>
+                        </div>
+                      </a>
+                    </div>
+                  )}
+                  
+                  {customerPhone && (
+                    <div>
+                      <p className="text-xs font-bold text-blue-600 uppercase mb-2">Phone Number</p>
+                      <a
+                        href={`tel:${customerPhone}`}
+                        className="block bg-white border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 hover:bg-blue-50 transition text-center"
+                      >
+                        <p className="text-2xl font-bold text-blue-900">📞 {customerPhone}</p>
+                        <p className="text-sm text-blue-600 mt-1 font-semibold">Tap to call</p>
+                      </a>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -388,9 +444,18 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase mb-2">Scheduled Date</p>
-              <p className="text-xl font-bold text-slate-900">
-                {new Date(job.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </p>
+              {isEditing ? (
+                <input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                />
+              ) : (
+                <p className="text-xl font-bold text-slate-900">
+                  {new Date(scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
+              )}
             </div>
           </div>
 
@@ -410,25 +475,35 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase mb-3">Duration (days)</p>
-              <div className="flex gap-3 items-center">
-                {isAdmin && (
-                  <button 
-                    onClick={() => handleDurationChange(duration - 1)} 
-                    className="px-4 py-2 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-2xl"
-                  >
-                    −
-                  </button>
-                )}
-                <span className="text-3xl font-bold text-slate-900 flex-1 text-center">{duration}</span>
-                {isAdmin && (
-                  <button 
-                    onClick={() => handleDurationChange(duration + 1)} 
-                    className="px-4 py-2 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-2xl"
-                  >
-                    +
-                  </button>
-                )}
-              </div>
+              {isEditing ? (
+                <input
+                  type="number"
+                  min={1}
+                  value={duration}
+                  onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                />
+              ) : (
+                <div className="flex gap-3 items-center">
+                  {isAdmin && (
+                    <button 
+                      onClick={() => handleDurationChange(duration - 1)} 
+                      className="px-4 py-2 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-2xl"
+                    >
+                      −
+                    </button>
+                  )}
+                  <span className="text-3xl font-bold text-slate-900 flex-1 text-center">{duration}</span>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => handleDurationChange(duration + 1)} 
+                      className="px-4 py-2 bg-slate-700 text-white font-bold rounded hover:bg-slate-600 text-2xl"
+                    >
+                      +
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
