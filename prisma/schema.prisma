@@ -53,6 +53,7 @@ model Job {
   notes         Note[]
   photos        Photo[]
   serviceAlerts ServiceAlert[]
+  durationChangeRequests DurationChangeRequest[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -115,11 +116,31 @@ model ServiceAlert {
   
   title  String
   description String?
-  severity String @default("normal") // normal, urgent, critical
+  severity String @default("non-urgent") // "urgent" or "non-urgent"
   status String @default("open") // open, acknowledged, resolved
   
   sentAt DateTime @default(now())
   acknowledgedAt DateTime?
+}
+
+// Duration change requests - workers can request duration changes
+model DurationChangeRequest {
+  id            String   @id @default(cuid())
+  jobId         String
+  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  requestedBy   String   // user email who requested
+  currentDuration Int
+  requestedDuration Int
+  reason        String
+  status        String   @default("pending") // pending, approved, rejected
+  
+  createdAt     DateTime @default(now())
+  respondedAt   DateTime?
+  respondedBy   String?  // admin who approved/rejected
+  
+  @@index([jobId])
+  @@index([status])
 }
 
 // Invite model - for inviting new users to the platform
