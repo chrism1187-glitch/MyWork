@@ -45,6 +45,9 @@ async function main() {
       status: 'in-progress',
       scheduledDate: today,
       duration: 2,
+      customerName: 'Mike Anderson',
+      customerAddress: '123 Oak Street, Pittsburgh, PA 15213',
+      customerPhone: '(412) 555-7890',
       assignedToId: user1.id,
       createdById: user2.id,
       lineItems: {
@@ -82,6 +85,9 @@ async function main() {
       status: 'pending',
       scheduledDate: tomorrow,
       duration: 5,
+      customerName: 'Jennifer Wilson',
+      customerAddress: '456 Maple Avenue, Pittsburgh, PA 15232',
+      customerPhone: '(412) 555-3456',
       assignedToId: user1.id,
       createdById: user2.id,
       lineItems: {
@@ -119,6 +125,9 @@ async function main() {
       status: 'pending',
       scheduledDate: nextWeek,
       duration: 3,
+      customerName: 'Robert Davis',
+      customerAddress: '789 Pine Road, Pittsburgh, PA 15206',
+      customerPhone: '(412) 555-1122',
       assignedToId: user1.id,
       createdById: user2.id,
       lineItems: {
