@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, Plus, Users } from 'lucide-react';
+import { Clock, Plus, Users, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import JobDetailModal from './JobDetailModal';
 import CreateJobModal from './CreateJobModal';
 import InviteModal from './InviteModal';
@@ -49,6 +49,8 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<Array<{id: string, name: string, email: string, role: string}>>([]);
   const [selectedCraftsman, setSelectedCraftsman] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Use provided email or fallback to demo email
   const userEmail = currentUserEmail || 'john@example.com';
@@ -59,6 +61,9 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
     fetchJobs();
     if (isAdmin) {
       fetchUsers();
+    }
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setViewMode('day');
     }
   }, []);
 
@@ -154,6 +159,20 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
+  const startOfWeek = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - day);
+    return d;
+  };
+
+  const goToAdjacentDay = (delta: number) => {
+    const next = new Date(selectedDate);
+    next.setDate(selectedDate.getDate() + delta);
+    setSelectedDate(next);
+  };
+
   const renderCalendar = () => {
     const days = [];
     const totalDays = daysInMonth(selectedDate);
@@ -236,6 +255,12 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
   };
 
   const selectedDateJobs = getJobsForDate(selectedDate);
+  const weekStart = startOfWeek(selectedDate);
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return d;
+  });
 
   if (loading) {
     return (
@@ -250,23 +275,32 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
       {/* Header */}
       <div className="bg-slate-900 text-white p-6 border-b border-slate-800">
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">MyWork</h1>
-            {currentUserName && <p className="text-sm text-slate-300 mt-1">Logged in as {currentUserName}</p>}
+          <div className="flex items-center gap-3">
+            <button
+              className="lg:hidden p-2 rounded bg-slate-800 border border-slate-700 hover:bg-slate-700"
+              onClick={() => setIsMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={22} />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold">MyWork</h1>
+              {currentUserName && <p className="text-sm text-slate-300 mt-1">Logged in as {currentUserName}</p>}
+            </div>
           </div>
           <div className="flex gap-3">
             {isAdmin && (
               <>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 transition rounded font-semibold"
+                  className="hidden lg:flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 transition rounded font-semibold"
                 >
                   <Plus size={20} />
                   New Job
                 </button>
                 <button
                   onClick={() => setShowInviteModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white hover:bg-blue-800 transition rounded font-semibold"
+                  className="hidden lg:flex items-center gap-2 px-4 py-2 bg-blue-700 text-white hover:bg-blue-800 transition rounded font-semibold"
                 >
                   <Users size={20} />
                   Invite Team
@@ -288,7 +322,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
       {/* Craftsman Selector for Admin */}
       {isAdmin && users.length > 0 && (
         <div className="bg-slate-800 text-white px-6 py-4 border-b border-slate-700">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
             <label className="text-sm font-semibold text-slate-300">View Calendar For:</label>
             <select
               value={selectedCraftsman}
@@ -312,87 +346,287 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
-        {/* Calendar */}
-        <div className="lg:col-span-2">
-          <div className="bg-white border border-gray-200 shadow">
-            {/* Month Navigation */}
-            <div className="flex justify-between items-center mb-6 p-6 bg-gray-50 border-b border-gray-200">
-              <button
-                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1))}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded"
-              >
-                ←
-              </button>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-              </h2>
-              <button
-                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1))}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded"
-              >
-                →
+      {/* Mobile menu overlay */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 lg:hidden">
+          <div className="bg-white w-64 h-full shadow-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-slate-900">Menu</h2>
+              <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded bg-slate-100 hover:bg-slate-200">
+                <X size={20} />
               </button>
             </div>
-
-            {/* Day Headers */}
-            <div className="grid grid-cols-7 gap-0 mb-2 px-6">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="text-center font-bold text-gray-700 p-2">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-0 border border-gray-200 mx-6 mb-6">
-              {renderCalendar()}
+            <div className="space-y-3">
+              <button
+                className={`w-full text-left px-4 py-2 rounded font-semibold ${viewMode === 'day' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'}`}
+                onClick={() => {
+                  setViewMode('day');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Daily Calendar
+              </button>
+              <button
+                className={`w-full text-left px-4 py-2 rounded font-semibold ${viewMode === 'week' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'}`}
+                onClick={() => {
+                  setViewMode('week');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Weekly Calendar
+              </button>
+              <button
+                className={`w-full text-left px-4 py-2 rounded font-semibold ${viewMode === 'month' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'}`}
+                onClick={() => {
+                  setViewMode('month');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Month Calendar
+              </button>
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={() => {
+                      setShowCreateModal(true);
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 rounded font-semibold bg-emerald-600 text-white"
+                  >
+                    + New Job
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowInviteModal(true);
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 rounded font-semibold bg-blue-600 text-white"
+                  >
+                    Invite Team
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
+      )}
 
-        {/* Sidebar */}
-        <div className="bg-white border border-gray-200 shadow p-6 rounded-lg h-fit sticky top-6">
-          <h3 className="text-xl font-bold mb-6 text-gray-900 pb-4 border-b-2 border-emerald-200">
-            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-          </h3>
+      <div className="p-6 space-y-6">
+        {/* View mode toggles for larger screens */}
+        <div className="hidden lg:flex items-center gap-3">
+          <button
+            className={`px-4 py-2 rounded font-semibold border ${viewMode === 'day' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-white text-slate-800 border-slate-200'}`}
+            onClick={() => setViewMode('day')}
+          >
+            Daily
+          </button>
+          <button
+            className={`px-4 py-2 rounded font-semibold border ${viewMode === 'week' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-white text-slate-800 border-slate-200'}`}
+            onClick={() => setViewMode('week')}
+          >
+            Weekly
+          </button>
+          <button
+            className={`px-4 py-2 rounded font-semibold border ${viewMode === 'month' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-white text-slate-800 border-slate-200'}`}
+            onClick={() => setViewMode('month')}
+          >
+            Monthly
+          </button>
+        </div>
 
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {selectedDateJobs.length === 0 ? (
-              <p className="text-gray-500 text-sm italic">No jobs scheduled for this date</p>
-            ) : (
-              selectedDateJobs.map((job) => (
-                <div
-                  key={job.id}
-                  onClick={() => setSelectedJob(job)}
-                  className={`p-4 border-2 rounded-lg cursor-pointer hover:shadow-lg transition ${getStatusColor(job.status)}`}
+        {/* Month view (desktop) */}
+        {viewMode === 'month' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <div className="bg-white border border-gray-200 shadow">
+                <div className="flex justify-between items-center mb-6 p-6 bg-gray-50 border-b border-gray-200">
+                  <button
+                    onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1))}
+                    className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded"
+                  >
+                    ←
+                  </button>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </h2>
+                  <button
+                    onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1))}
+                    className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded"
+                  >
+                    →
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-7 gap-0 mb-2 px-6">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <div key={day} className="text-center font-bold text-gray-700 p-2">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-0 border border-gray-200 mx-6 mb-6">
+                  {renderCalendar()}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 shadow p-6 rounded-lg h-fit sticky top-6">
+              <h3 className="text-xl font-bold mb-6 text-gray-900 pb-4 border-b-2 border-emerald-200">
+                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </h3>
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {selectedDateJobs.length === 0 ? (
+                  <p className="text-gray-500 text-sm italic">No jobs scheduled for this date</p>
+                ) : (
+                  selectedDateJobs.map((job) => (
+                    <div
+                      key={job.id}
+                      onClick={() => setSelectedJob(job)}
+                      className={`p-4 border-2 rounded-lg cursor-pointer hover:shadow-lg transition ${getStatusColor(job.status)}`}
+                    >
+                      <h4 className="font-bold text-lg text-gray-900">{job.title}</h4>
+                      <p className="text-sm text-gray-700 mt-2">{job.assignedTo.name}</p>
+                      <div className="flex items-center gap-2 mt-3 text-sm text-gray-700">
+                        <Clock size={16} />
+                        <span className="font-semibold">{job.duration} day{job.duration > 1 ? 's' : ''}</span>
+                      </div>
+                      {job.status !== 'pending' && (
+                        <span className="inline-block mt-3 px-3 py-1 text-xs font-bold bg-emerald-600 text-white rounded-full">
+                          {job.status.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {isAdmin && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="w-full mt-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 flex items-center justify-center gap-2 font-semibold transition"
                 >
-                  <h4 className="font-bold text-lg text-gray-900">{job.title}</h4>
-                  <p className="text-sm text-gray-700 mt-2">{job.assignedTo.name}</p>
-                  <div className="flex items-center gap-2 mt-3 text-sm text-gray-700">
-                    <Clock size={16} />
-                    <span className="font-semibold">{job.duration} day{job.duration > 1 ? 's' : ''}</span>
-                  </div>
-                  {job.status !== 'pending' && (
-                    <span className="inline-block mt-3 px-3 py-1 text-xs font-bold bg-emerald-600 text-white rounded-full">
-                      {job.status.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-              ))
-            )}
+                  <Plus size={18} />
+                  New Job
+                </button>
+              )}
+            </div>
           </div>
+        )}
 
-          {isAdmin && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="w-full mt-4 py-2 bg-emerald-700 text-white hover:bg-emerald-800 flex items-center justify-center gap-2 font-semibold transition"
-            >
-              <Plus size={18} />
-              New Job
-            </button>
-          )}
-        </div>
+        {/* Week view */}
+        {viewMode === 'week' && (
+          <div className="bg-white border border-gray-200 shadow p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() - 7))}
+                className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded"
+              >
+                <ChevronLeft size={18} /> Previous Week
+              </button>
+              <h3 className="text-lg font-bold text-slate-900">
+                Week of {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </h3>
+              <button
+                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + 7))}
+                className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded"
+              >
+                Next Week <ChevronRight size={18} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {weekDays.map((day) => {
+                const jobsForDay = getJobsForDate(day);
+                return (
+                  <div key={day.toISOString()} className="border border-slate-200 rounded-lg p-3">
+                    <div className="flex items-baseline justify-between mb-2">
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500">{day.toLocaleDateString('en-US', { weekday: 'short' })}</p>
+                        <p className="text-xl font-bold text-slate-900">{day.getDate()}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {jobsForDay.length === 0 && (
+                        <p className="text-xs text-slate-500">No jobs</p>
+                      )}
+                      {jobsForDay.map((job) => (
+                        <div
+                          key={job.id}
+                          onClick={() => {
+                            setSelectedDate(day);
+                            setSelectedJob(job);
+                          }}
+                          className={`p-2 rounded border cursor-pointer hover:shadow-sm transition ${getStatusColor(job.status)}`}
+                        >
+                          <p className="text-sm font-semibold">{job.title}</p>
+                          <p className="text-xs text-slate-700">{job.assignedTo.name}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Day view */}
+        {viewMode === 'day' && (
+          <div className="bg-white border border-gray-200 shadow p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <button
+                onClick={() => goToAdjacentDay(-1)}
+                className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded"
+              >
+                <ChevronLeft size={18} /> Previous Day
+              </button>
+              <div className="text-center">
+                <p className="text-xs text-slate-500">Daily Schedule</p>
+                <h3 className="text-xl font-bold text-slate-900">
+                  {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </h3>
+              </div>
+              <button
+                onClick={() => goToAdjacentDay(1)}
+                className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded"
+              >
+                Next Day <ChevronRight size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {selectedDateJobs.length === 0 ? (
+                <p className="text-gray-500 text-sm italic">No jobs scheduled for this date</p>
+              ) : (
+                selectedDateJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    onClick={() => setSelectedJob(job)}
+                    className={`p-4 border-2 rounded-lg cursor-pointer hover:shadow-lg transition ${getStatusColor(job.status)}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-lg text-gray-900">{job.title}</h4>
+                        <p className="text-sm text-gray-700 mt-1">{job.assignedTo.name}</p>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <Clock size={16} />
+                        <span className="font-semibold">{job.duration} day{job.duration > 1 ? 's' : ''}</span>
+                      </div>
+                    </div>
+                    {job.status !== 'pending' && (
+                      <span className="inline-block mt-3 px-3 py-1 text-xs font-bold bg-emerald-600 text-white rounded-full">
+                        {job.status.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modals */}

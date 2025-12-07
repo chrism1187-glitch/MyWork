@@ -411,15 +411,10 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(customerAddress)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block"
+                        className="block border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 hover:bg-blue-50 transition cursor-pointer"
                       >
-                        <div className="bg-white border-2 border-blue-400 rounded-lg p-4 hover:border-blue-600 transition cursor-pointer">
-                          <p className="text-lg font-semibold text-blue-900 mb-2">{customerAddress}</p>
-                          <div className="bg-slate-100 rounded h-20 flex items-center justify-center text-slate-600 text-sm font-semibold">
-                            📍 Tap to view in Google Maps
-                          </div>
-                          <p className="text-sm text-blue-600 mt-2 text-center font-semibold">📍 Tap to open in Google Maps</p>
-                        </div>
+                        <p className="text-lg font-semibold text-blue-900 underline">{customerAddress}</p>
+                        <p className="text-sm text-blue-700 mt-2 font-semibold">📍 Open in Google Maps</p>
                       </a>
                     </div>
                   )}
