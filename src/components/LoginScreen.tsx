@@ -54,7 +54,7 @@ export default function LoginScreen({ onLogin }: Props) {
     <div className="min-h-screen bg-gradient-to-br from-emerald-700 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-2xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Job Manager Pro</h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">MyWork</h1>
           <p className="text-slate-600">Professional job management and scheduling</p>
         </div>
 

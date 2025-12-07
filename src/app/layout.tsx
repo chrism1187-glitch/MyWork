@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Job Manager Pro",
+  title: "MyWork",
   description: "Professional job management and scheduling platform",
 };
 

@@ -20,9 +20,17 @@ interface Props {
 }
 
 export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail, createdByEmail, selectedDate }: Props) {
+  const getLocalDateString = () => {
+    const date = new Date();
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [scheduledDate, setScheduledDate] = useState(selectedDate || new Date().toISOString().split('T')[0]);
+  const [scheduledDate, setScheduledDate] = useState(selectedDate || getLocalDateString());
   const [duration, setDuration] = useState(1);
   const [assignedToEmailState, setAssignedToEmailState] = useState(assignedToEmail);
   const [lineItems, setLineItems] = useState<LineItem[]>([
@@ -127,7 +135,8 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
                 type="date" 
                 value={scheduledDate} 
                 onChange={(e) => setScheduledDate(e.target.value)} 
-                className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-emerald-700"
+                className="w-full px-4 py-4 border-2 border-slate-300 rounded-lg text-xl focus:outline-none focus:border-emerald-700"
+                style={{ minHeight: '56px' }}
               />
             </div>
             <div>

@@ -199,7 +199,7 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
       <div className="bg-slate-900 text-white p-6 border-b border-slate-800">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Job Manager Pro</h1>
+            <h1 className="text-3xl font-bold">MyWork</h1>
             {currentUserName && <p className="text-sm text-slate-300 mt-1">Logged in as {currentUserName}</p>}
           </div>
           <div className="flex gap-3">
