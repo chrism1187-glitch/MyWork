@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-type Unit = 'LF' | 'SF' | 'EA';
+import { LINE_ITEM_PRESETS, Unit } from '../data/rates';
 
 interface LineItem {
   title: string;
@@ -12,17 +11,6 @@ interface LineItem {
   quantity: number;
   note: string;
 }
-
-const LINE_ITEM_PRESETS: { label: string; unit: Unit }[] = [
-  { label: 'Power wash / clean', unit: 'SF' },
-  { label: 'Scrape & prep surfaces', unit: 'SF' },
-  { label: 'Prime surfaces', unit: 'SF' },
-  { label: 'Paint walls (2 coats)', unit: 'SF' },
-  { label: 'Paint trim/doors', unit: 'LF' },
-  { label: 'Caulk / seal gaps', unit: 'LF' },
-  { label: 'Stain / seal wood', unit: 'SF' },
-  { label: 'Cleanup & haul away', unit: 'EA' },
-];
 
 interface Props {
   onClose: () => void;
@@ -254,9 +242,9 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
                     <div>
                       <p className="text-xs font-semibold text-slate-600 mb-1">Preset</p>
                       <select
-                        value={LINE_ITEM_PRESETS.find(p => p.label === item.title)?.label || ''}
+                        value={LINE_ITEM_PRESETS.find((p) => p.label === item.title && p.unit === item.unit)?.id || ''}
                         onChange={(e) => {
-                          const preset = LINE_ITEM_PRESETS.find(p => p.label === e.target.value);
+                          const preset = LINE_ITEM_PRESETS.find((p) => p.id === e.target.value);
                           if (preset) {
                             updateLineItem(index, 'title', preset.label);
                             updateLineItem(index, 'unit', preset.unit);
@@ -268,8 +256,8 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
                       >
                         <option value="">Custom / Other</option>
                         {LINE_ITEM_PRESETS.map((preset) => (
-                          <option key={preset.label} value={preset.label}>
-                            {preset.label} ({preset.unit})
+                          <option key={preset.id} value={preset.id}>
+                            {preset.label} ({preset.unit}) · {preset.category}
                           </option>
                         ))}
                       </select>
