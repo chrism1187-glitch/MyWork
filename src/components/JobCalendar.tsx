@@ -13,6 +13,9 @@ interface Job {
   status: string;
   scheduledDate: string;
   duration: number;
+  customerName?: string;
+  customerAddress?: string;
+  customerPhone?: string;
   assignedTo: { name: string; email: string };
   lineItems: any[];
   notes: any[];
@@ -92,11 +95,15 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
           status: job.status || 'pending',
           scheduledDate: job.scheduledDate,
           duration: job.duration || 1,
+          customerName: job.customerName || '',
+          customerAddress: job.customerAddress || '',
+          customerPhone: job.customerPhone || '',
           assignedTo: job.assignedTo || { name: 'Unassigned', email: 'unknown@example.com' },
           lineItems: Array.isArray(job.lineItems) ? job.lineItems : [],
           notes: Array.isArray(job.notes) ? job.notes : [],
           photos: Array.isArray(job.photos) ? job.photos : [],
           serviceAlerts: Array.isArray(job.serviceAlerts) ? job.serviceAlerts : [],
+          hasPendingDurationRequest: Boolean(job.hasPendingDurationRequest),
         }));
         
         // Filter jobs based on user role and selected craftsman
