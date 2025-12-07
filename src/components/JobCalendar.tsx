@@ -261,6 +261,11 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
     d.setDate(weekStart.getDate() + i);
     return d;
   });
+  const weekEnd = (() => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + 6);
+    return d;
+  })();
 
   if (loading) {
     return (
@@ -520,16 +525,19 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
           <div className="bg-white border border-gray-200 shadow p-4 rounded-lg">
             <div className="flex items-center justify-between mb-4">
               <button
-                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() - 7))}
+                onClick={() => setSelectedDate(new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() - 7))}
                 className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded"
               >
                 <ChevronLeft size={18} /> Previous Week
               </button>
-              <h3 className="text-lg font-bold text-slate-900">
-                Week of {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </h3>
+              <div className="text-center">
+                <p className="text-xs text-slate-500">Sunday – Saturday</p>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – {weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </h3>
+              </div>
               <button
-                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() + 7))}
+                onClick={() => setSelectedDate(new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 7))}
                 className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded"
               >
                 Next Week <ChevronRight size={18} />
