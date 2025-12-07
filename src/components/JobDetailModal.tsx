@@ -37,6 +37,9 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
   const [photos, setPhotos] = useState(job.photos || []);
   const [alerts, setAlerts] = useState(job.serviceAlerts || []);
   const [loadingNotes, setLoadingNotes] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertDescription, setAlertDescription] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState<'urgent' | 'non-urgent'>('non-urgent');
   
   const userRole = currentUserRole || 'user';
   const isAdmin = userRole === 'admin';
@@ -102,6 +105,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
       if (response.ok) {
         setStatus(newStatus);
         toast.success('Status updated');
+        onJobUpdated(); // Refresh calendar
       }
     } catch (error) {
       toast.error('Failed to update status');
@@ -232,8 +236,10 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
   };
 
   const handleServiceAlert = async () => {
-    const description = prompt('Describe the service issue:');
-    if (!description) return;
+    if (!alertDescription.trim()) {
+      toast.error('Please describe the service issue');
+      return;
+    }
     
     try {
       const response = await fetch(`/api/jobs/${job.id}/alerts`, {
@@ -241,14 +247,18 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: 'Service Issue Report',
-          description: description,
-          severity: 'urgent',
+          description: alertDescription,
+          severity: alertSeverity,
         }),
       });
       if (response.ok) {
         const newAlert = await response.json();
         setAlerts([newAlert, ...alerts]);
-        toast.success('Service alert created (SMS integration coming soon)');
+        setShowAlertModal(false);
+        setAlertDescription('');
+        setAlertSeverity('non-urgent');
+        toast.success('Service alert created');
+        onJobUpdated();
       } else {
         toast.error('Failed to create alert');
       }
@@ -433,12 +443,63 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
           </div>
 
           <button
-            onClick={handleServiceAlert}
+            onClick={() => setShowAlertModal(true)}
             className="w-full py-4 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition flex items-center justify-center gap-2 text-lg"
           >
             <AlertTriangle size={24} />
             Report Service Issue
           </button>
+
+          {showAlertModal && (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                <h3 className="text-xl font-bold mb-4 text-slate-900">Report Service Issue</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Severity</label>
+                    <select
+                      value={alertSeverity}
+                      onChange={(e) => setAlertSeverity(e.target.value as 'urgent' | 'non-urgent')}
+                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base focus:outline-none focus:border-red-500"
+                    >
+                      <option value="non-urgent">Non-Urgent</option>
+                      <option value="urgent">Urgent</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Description</label>
+                    <textarea
+                      value={alertDescription}
+                      onChange={(e) => setAlertDescription(e.target.value)}
+                      placeholder="Describe the service issue..."
+                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg text-base h-32 focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleServiceAlert}
+                      className="flex-1 py-3 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition"
+                    >
+                      Submit Alert
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAlertModal(false);
+                        setAlertDescription('');
+                        setAlertSeverity('non-urgent');
+                      }}
+                      className="flex-1 py-3 bg-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-400 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {alerts.length > 0 && (
             <div className="p-4 bg-red-50 border-2 border-red-300 rounded-lg">

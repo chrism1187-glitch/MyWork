@@ -18,6 +18,7 @@ interface Job {
   notes: any[];
   photos: any[];
   serviceAlerts: any[];
+  hasPendingDurationRequest?: boolean;
 }
 
 const DEMO_ASSIGNEE_EMAIL = 'john@example.com';
@@ -163,15 +164,41 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
             {day}
           </div>
           <div className="mt-1 space-y-1">
-            {dayJobs.slice(0, 2).map((job) => (
-              <div
-                key={job.id}
-                onClick={() => setSelectedJob(job)}
-                className="text-xs bg-slate-200 text-slate-900 p-1 cursor-pointer hover:bg-slate-300 truncate border border-slate-300"
-              >
-                {job.title}
-              </div>
-            ))}
+            {dayJobs.slice(0, 2).map((job) => {
+              const isCompleted = job.status === 'completed';
+              const hasDurationRequest = job.hasPendingDurationRequest;
+              const hasAlerts = job.serviceAlerts && job.serviceAlerts.length > 0;
+              
+              let bgColor = 'bg-slate-200';
+              let textColor = 'text-slate-900';
+              let borderColor = 'border-slate-300';
+              let hoverColor = 'hover:bg-slate-300';
+              
+              if (isCompleted) {
+                bgColor = 'bg-green-500';
+                textColor = 'text-white';
+                borderColor = 'border-green-600';
+                hoverColor = 'hover:bg-green-600';
+              } else if (hasDurationRequest) {
+                bgColor = 'bg-red-500';
+                textColor = 'text-white';
+                borderColor = 'border-red-600';
+                hoverColor = 'hover:bg-red-600';
+              }
+              
+              return (
+                <div
+                  key={job.id}
+                  onClick={() => setSelectedJob(job)}
+                  className={`text-xs ${bgColor} ${textColor} p-1 cursor-pointer ${hoverColor} truncate border ${borderColor} flex items-center gap-1`}
+                >
+                  <span className="flex-1 truncate">{job.title}</span>
+                  {isCompleted && hasAlerts && (
+                    <span className="text-yellow-300" title="Completed with alerts">⚠</span>
+                  )}
+                </div>
+              );
+            })}
             {dayJobs.length > 2 && (
               <div className="text-xs text-gray-600">+{dayJobs.length - 2} more</div>
             )}

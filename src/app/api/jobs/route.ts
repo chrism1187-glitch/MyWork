@@ -25,11 +25,20 @@ export async function GET(req: NextRequest) {
         },
         photos: true,
         serviceAlerts: true,
+        durationChangeRequests: {
+          where: { status: 'pending' },
+        },
       },
       orderBy: { scheduledDate: 'asc' },
     });
 
-    return NextResponse.json(jobs);
+    // Add hasPendingDurationRequest flag to each job
+    const jobsWithFlags = jobs.map(job => ({
+      ...job,
+      hasPendingDurationRequest: job.durationChangeRequests.length > 0,
+    }));
+
+    return NextResponse.json(jobsWithFlags);
   } catch (error) {
     console.error('Error fetching jobs:', error);
     return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
