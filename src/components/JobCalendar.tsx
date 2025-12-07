@@ -43,6 +43,8 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<Array<{id: string, name: string, email: string, role: string}>>([]);
+  const [selectedCraftsman, setSelectedCraftsman] = useState<string>('all');
   
   // Use provided email or fallback to demo email
   const userEmail = currentUserEmail || 'john@example.com';
@@ -51,7 +53,24 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
 
   useEffect(() => {
     fetchJobs();
+    if (isAdmin) {
+      fetchUsers();
+    }
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const data = await response.json();
+        // Filter to only show non-admin users (craftsmen/workers)
+        const workers = data.filter((u: any) => u.role !== 'admin');
+        setUsers(workers);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
 
   const fetchJobs = async () => {
     try {
@@ -74,10 +93,15 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
           serviceAlerts: Array.isArray(job.serviceAlerts) ? job.serviceAlerts : [],
         }));
         
-        // If not admin, filter to only show jobs assigned to this user
+        // Filter jobs based on user role and selected craftsman
         if (!isAdmin) {
+          // Workers only see their own jobs
           normalizedJobs = normalizedJobs.filter((job: Job) => job.assignedTo?.email === userEmail);
+        } else if (selectedCraftsman !== 'all') {
+          // Admin viewing specific craftsman's jobs
+          normalizedJobs = normalizedJobs.filter((job: Job) => job.assignedTo?.email === selectedCraftsman);
         }
+        // If admin and 'all' selected, show all jobs
         
         setJobs(normalizedJobs);
       }
@@ -203,6 +227,33 @@ export default function JobCalendar({ currentUserEmail, currentUserName, current
           </div>
         </div>
       </div>
+
+      {/* Craftsman Selector for Admin */}
+      {isAdmin && users.length > 0 && (
+        <div className="bg-slate-800 text-white px-6 py-4 border-b border-slate-700">
+          <div className="flex items-center gap-4">
+            <label className="text-sm font-semibold text-slate-300">View Calendar For:</label>
+            <select
+              value={selectedCraftsman}
+              onChange={(e) => setSelectedCraftsman(e.target.value)}
+              className="px-4 py-2 bg-slate-700 text-white rounded border border-slate-600 focus:outline-none focus:border-emerald-500"
+            >
+              <option value="all">All Craftsmen</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.email}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+            <span className="text-sm text-slate-400">
+              {selectedCraftsman === 'all' 
+                ? `Showing ${jobs.length} job${jobs.length !== 1 ? 's' : ''} for all craftsmen`
+                : `Showing ${jobs.length} job${jobs.length !== 1 ? 's' : ''} for ${users.find(u => u.email === selectedCraftsman)?.name || 'selected craftsman'}`
+              }
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
         {/* Calendar */}
