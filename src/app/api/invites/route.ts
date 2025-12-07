@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { Resend } from 'resend';
 
 const prisma = new PrismaClient();
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // POST /api/invites - Create a new invite
 export async function POST(req: NextRequest) {
@@ -58,9 +60,35 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // In production, send email with invite link
-    // For now, just return the token
-    console.log(`Invite link: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/accept-invite?token=${token}`);
+    // Send email with invite link
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/accept-invite?token=${token}`;
+    
+    if (resend) {
+      try {
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM || 'MyWork <onboarding@resend.dev>',
+          to: email,
+          subject: 'You\'ve been invited to MyWork',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h1 style="color: #059669;">Welcome to MyWork!</h1>
+              <p>You've been invited to join the MyWork job management platform.</p>
+              <p>Click the button below to accept your invitation and create your account:</p>
+              <a href="${inviteLink}" style="display: inline-block; padding: 12px 24px; background-color: #059669; color: white; text-decoration: none; border-radius: 6px; margin: 20px 0;">Accept Invitation</a>
+              <p style="color: #666; font-size: 14px;">Or copy and paste this link into your browser:</p>
+              <p style="color: #666; font-size: 12px; word-break: break-all;">${inviteLink}</p>
+              <p style="color: #666; font-size: 12px; margin-top: 20px;">This invitation will expire in 7 days.</p>
+            </div>
+          `,
+        });
+        console.log(`Email sent to ${email}`);
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+        // Don't fail the request if email fails
+      }
+    } else {
+      console.log(`Email service not configured. Invite link: ${inviteLink}`);
+    }
 
     return NextResponse.json(invite);
   } catch (error) {
