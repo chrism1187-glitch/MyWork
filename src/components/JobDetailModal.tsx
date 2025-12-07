@@ -63,6 +63,23 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
     fetchAlerts();
   }, []);
 
+  // Keep form state in sync when opening a different job
+  useEffect(() => {
+    setStatus(job.status);
+    setDuration(job.duration);
+    setTitle(job.title);
+    setDescription(job.description || '');
+    const d = new Date(job.scheduledDate);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    setScheduledDate(`${yyyy}-${mm}-${dd}`);
+    setCustomerName(job.customerName || '');
+    setCustomerAddress(job.customerAddress || '');
+    setCustomerPhone(job.customerPhone || '');
+    setIsEditing(false);
+  }, [job.id]);
+
   const fetchNotes = async () => {
     try {
       const response = await fetch(`/api/jobs/${job.id}/notes`);

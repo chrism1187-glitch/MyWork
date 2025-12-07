@@ -187,8 +187,8 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
                 type="date" 
                 value={scheduledDate} 
                 onChange={(e) => setScheduledDate(e.target.value)} 
-                className="w-full px-4 py-4 h-14 border-2 border-slate-300 rounded-lg text-xl focus:outline-none focus:border-emerald-700"
-                style={{ minHeight: '64px' }}
+                className="w-full px-5 py-5 h-16 border-2 border-slate-300 rounded-lg text-2xl focus:outline-none focus:border-emerald-700"
+                style={{ minHeight: '72px' }}
               />
             </div>
             <div>
