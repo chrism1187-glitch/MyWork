@@ -21,6 +21,15 @@ interface Job {
   serviceAlerts: any[];
 }
 
+interface LineItem {
+  id?: string;
+  title: string;
+  description?: string;
+  quantity: number;
+  rate?: number;
+  status?: string;
+}
+
 interface Props {
   job: Job;
   onClose: () => void;
@@ -34,6 +43,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
   const [duration, setDuration] = useState(job.duration);
   const [title, setTitle] = useState(job.title);
   const [description, setDescription] = useState(job.description || '');
+  const [lineItems, setLineItems] = useState<LineItem[]>(job.lineItems || []);
   const [scheduledDate, setScheduledDate] = useState(() => {
     const d = new Date(job.scheduledDate);
     const yyyy = d.getFullYear();
@@ -69,6 +79,7 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
     setDuration(job.duration);
     setTitle(job.title);
     setDescription(job.description || '');
+    setLineItems(job.lineItems || []);
     const d = new Date(job.scheduledDate);
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -151,6 +162,10 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
       toast.error('Scheduled date is required');
       return;
     }
+    if (isAdmin && lineItems.some((li) => !li.title?.trim())) {
+      toast.error('Each line item needs a title');
+      return;
+    }
     try {
       const response = await fetch(`/api/jobs/${job.id}`, {
         method: 'PUT',
@@ -163,6 +178,14 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
           customerName,
           customerAddress,
           customerPhone,
+          lineItems: isAdmin ? lineItems.map((li) => ({
+            id: li.id,
+            title: li.title || 'Line item',
+            description: li.description || '',
+            quantity: Math.max(1, Number(li.quantity) || 1),
+            rate: typeof li.rate === 'number' ? li.rate : 0,
+            status: li.status || 'pending',
+          })) : undefined,
         }),
       });
       if (response.ok) {
@@ -193,6 +216,20 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
     } catch (error) {
       toast.error('Error deleting job');
     }
+  };
+
+  const updateLineItem = (index: number, field: keyof LineItem, value: any) => {
+    const updated = [...lineItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setLineItems(updated);
+  };
+
+  const addLineItem = () => {
+    setLineItems([...lineItems, { title: '', description: '', quantity: 1, rate: 0, status: 'pending' }]);
+  };
+
+  const removeLineItem = (index: number) => {
+    setLineItems(lineItems.filter((_, i) => i !== index));
   };
 
   const handleDurationChange = async (newDuration: number) => {
@@ -527,6 +564,80 @@ export default function JobDetailModal({ job, onClose, onJobUpdated, currentUser
               </div>
             </div>
           )}
+
+          <div className="border-t-2 border-slate-200 pt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-slate-900">Line Items ({lineItems.length})</h3>
+              {isAdmin && isEditing && (
+                <button
+                  onClick={addLineItem}
+                  className="px-3 py-1.5 bg-emerald-700 text-white text-sm font-bold rounded hover:bg-emerald-800"
+                >
+                  Add Line Item
+                </button>
+              )}
+            </div>
+
+            {lineItems.length === 0 ? (
+              <p className="text-slate-500 text-sm">No line items</p>
+            ) : isAdmin && isEditing ? (
+              <div className="space-y-4">
+                {lineItems.map((item, index) => (
+                  <div key={index} className="p-4 bg-slate-50 border-2 border-slate-200 rounded-lg space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                      <div className="sm:col-span-2">
+                        <p className="text-xs font-semibold text-slate-600 mb-1">Title</p>
+                        <input
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => updateLineItem(index, 'title', e.target.value)}
+                          className="w-full px-3 py-2 border-2 border-slate-300 rounded text-sm"
+                          placeholder="e.g., Paint walls"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-600 mb-1">Quantity</p>
+                        <input
+                          type="number"
+                          min={1}
+                          value={item.quantity}
+                          onChange={(e) => updateLineItem(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-full px-3 py-2 border-2 border-slate-300 rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-600 mb-1">Description / Note</p>
+                      <textarea
+                        value={item.description || ''}
+                        onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                        className="w-full px-3 py-2 border-2 border-slate-300 rounded text-sm h-20"
+                        placeholder="Optional detail, unit tag, or note"
+                      />
+                    </div>
+                    {lineItems.length > 1 && (
+                      <button
+                        onClick={() => removeLineItem(index)}
+                        className="w-full py-2 bg-red-700 text-white text-sm font-bold rounded hover:bg-red-800"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {lineItems.map((item) => (
+                  <div key={item.id || item.title} className="p-4 bg-slate-50 border-2 border-slate-200 rounded-lg">
+                    <p className="font-bold text-slate-900 text-sm">{item.title}</p>
+                    <p className="text-sm text-slate-700 mt-1">Qty: {item.quantity}</p>
+                    {item.description && <p className="text-sm text-slate-600 mt-1 whitespace-pre-wrap">{item.description}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="border-t-2 border-slate-200 pt-6">
             <h3 className="text-base font-bold text-slate-900 mb-3">Notes ({notes.length})</h3>

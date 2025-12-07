@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { LINE_ITEM_PRESETS, Unit } from '../data/rates';
 
@@ -41,13 +41,44 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
     { title: '', unit: 'EA', quantity: 1, note: '' },
   ]);
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [calendarDate, setCalendarDate] = useState(() => {
+    if (selectedDate) {
+      return new Date(`${selectedDate}T00:00:00`);
+    }
+    return new Date();
+  });
 
   // Keep scheduled date in sync with calendar selection to avoid off-by-one
   useEffect(() => {
     if (selectedDate) {
       setScheduledDate(selectedDate);
+      setCalendarDate(new Date(`${selectedDate}T00:00:00`));
     }
   }, [selectedDate]);
+
+  const daysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const firstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const handleDateSelect = (day: number) => {
+    const yyyy = calendarDate.getFullYear();
+    const mm = String(calendarDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const newDate = `${yyyy}-${mm}-${dd}`;
+    setScheduledDate(newDate);
+    setShowDatePicker(false);
+  };
+
+  const handleMonthChange = (delta: number) => {
+    const newDate = new Date(calendarDate);
+    newDate.setMonth(calendarDate.getMonth() + delta);
+    setCalendarDate(newDate);
+  };
 
   const addLineItem = () => {
     setLineItems([...lineItems, { title: '', unit: 'EA', quantity: 1, note: '' }]);
@@ -199,12 +230,71 @@ export default function CreateJobModal({ onClose, onJobCreated, assignedToEmail,
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-slate-900 mb-2">Scheduled Date</label>
-              <input 
-                type="date" 
-                value={scheduledDate} 
-                onChange={(e) => setScheduledDate(e.target.value)} 
-                className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700"
-              />
+              <div className="relative">
+                <input 
+                  type="text"
+                  value={new Date(scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  readOnly
+                  className="w-full px-3.5 py-2.5 border-2 border-slate-300 rounded-lg text-sm focus:outline-none focus:border-emerald-700 cursor-pointer bg-white"
+                />
+                {showDatePicker && (
+                  <div className="absolute top-full left-0 mt-2 bg-white border-2 border-slate-300 rounded-lg shadow-lg z-50 p-4 w-80">
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        onClick={() => handleMonthChange(-1)}
+                        className="p-2 hover:bg-slate-100 rounded transition"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <h3 className="text-lg font-bold text-slate-900">
+                        {calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </h3>
+                      <button
+                        onClick={() => handleMonthChange(1)}
+                        className="p-2 hover:bg-slate-100 rounded transition"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-7 gap-2 mb-4">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                        <div key={day} className="text-center font-bold text-slate-600 text-sm py-2">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-7 gap-2">
+                      {Array.from({ length: firstDayOfMonth(calendarDate) }).map((_, i) => (
+                        <div key={`empty-${i}`} className="aspect-square"></div>
+                      ))}
+                      {Array.from({ length: daysInMonth(calendarDate) }).map((_, i) => {
+                        const day = i + 1;
+                        const yyyy = calendarDate.getFullYear();
+                        const mm = String(calendarDate.getMonth() + 1).padStart(2, '0');
+                        const dd = String(day).padStart(2, '0');
+                        const dateStr = `${yyyy}-${mm}-${dd}`;
+                        const isSelected = dateStr === scheduledDate;
+                        return (
+                          <button
+                            key={day}
+                            onClick={() => handleDateSelect(day)}
+                            className={`aspect-square rounded font-semibold text-sm transition ${
+                              isSelected
+                                ? 'bg-emerald-700 text-white'
+                                : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-900 mb-2">Duration (days)</label>

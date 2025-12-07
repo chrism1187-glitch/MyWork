@@ -53,28 +53,59 @@ export async function PUT(
       customerName,
       customerAddress,
       customerPhone,
+      lineItems,
     } = body;
 
-    const job = await prisma.job.update({
-      where: { id: jobId },
-      data: {
-        ...(title !== undefined ? { title } : {}),
-        ...(description !== undefined ? { description } : {}),
-        ...(status !== undefined ? { status } : {}),
-        ...(startDate ? { startDate: new Date(startDate) } : {}),
-        ...(endDate ? { endDate: new Date(endDate) } : {}),
-        ...(scheduledDate ? { scheduledDate: new Date(`${scheduledDate}T00:00:00`) } : {}),
-        ...(typeof duration === 'number' ? { duration } : {}),
-        ...(customerName !== undefined ? { customerName } : {}),
-        ...(customerAddress !== undefined ? { customerAddress } : {}),
-        ...(customerPhone !== undefined ? { customerPhone } : {}),
-      },
-      include: {
-        assignedTo: true,
-        lineItems: true,
-        notes: true,
-        photos: true,
-      },
+    const job = await prisma.$transaction(async (tx) => {
+      const updatedJob = await tx.job.update({
+        where: { id: jobId },
+        data: {
+          ...(title !== undefined ? { title } : {}),
+          ...(description !== undefined ? { description } : {}),
+          ...(status !== undefined ? { status } : {}),
+          ...(startDate ? { startDate: new Date(startDate) } : {}),
+          ...(endDate ? { endDate: new Date(endDate) } : {}),
+          ...(scheduledDate ? { scheduledDate: new Date(`${scheduledDate}T00:00:00`) } : {}),
+          ...(typeof duration === 'number' ? { duration } : {}),
+          ...(customerName !== undefined ? { customerName } : {}),
+          ...(customerAddress !== undefined ? { customerAddress } : {}),
+          ...(customerPhone !== undefined ? { customerPhone } : {}),
+        },
+      });
+
+      if (Array.isArray(lineItems)) {
+        // Replace line items for this job with provided set
+        await tx.lineItem.deleteMany({ where: { jobId } });
+        if (lineItems.length > 0) {
+          await tx.lineItem.createMany({
+            data: lineItems.map((item: any) => {
+              const quantity = Math.max(1, Number(item.quantity) || 1);
+              const rate = typeof item.rate === 'number' ? item.rate : 0;
+              return {
+                jobId,
+                title: item.title || 'Line item',
+                description: item.description || '',
+                quantity,
+                rate,
+                total: quantity * rate,
+                status: item.status || 'pending',
+              };
+            }),
+          });
+        }
+      }
+
+      return tx.job.findUnique({
+        where: { id: jobId },
+        include: {
+          assignedTo: true,
+          createdBy: true,
+          lineItems: true,
+          notes: { include: { user: true } },
+          photos: { include: { user: true } },
+          serviceAlerts: true,
+        },
+      });
     });
 
     return NextResponse.json(job);
